@@ -1,0 +1,28 @@
+{
+  "name": "@repo-radar/data-access",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.5.0",
+    "@repo-radar/types": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-redux": "^9.2.0"
+  },
+  "devDependencies": {
+    "@repo-radar/config": "workspace:*",
+    "react": "^19.0.0",
+    "react-redux": "^9.2.0",
+    "vitest": "^5.0.1"
+  }
+}
