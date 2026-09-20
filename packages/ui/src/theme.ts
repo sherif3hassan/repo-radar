@@ -22,9 +22,17 @@ export interface VizPalette {
 declare module '@mui/material/styles' {
   interface Palette {
     viz: VizPalette
+    /**
+     * The border that is the only thing identifying an icon-only button.
+     * Lives on the palette (rather than as a plain `light`/`dark` constant
+     * read directly) so `t.vars.palette.control.border` resolves per scheme
+     * through CSS variables — see the note on `MuiIconButton` below.
+     */
+    control: { border: string }
   }
   interface PaletteOptions {
     viz?: VizPalette
+    control?: { border: string }
   }
   interface TypographyVariants {
     fontFamilyMono: string
@@ -34,7 +42,8 @@ declare module '@mui/material/styles' {
   }
 }
 
-const SANS = '"Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif'
+const SANS =
+  '"Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif'
 
 const HYPERLEGIBLE = '"Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif'
 
@@ -48,14 +57,14 @@ export interface AppThemeOptions {
 }
 
 const CATEGORICAL_LIGHT = [
-  '#2a78d6', // blue
-  '#eb6834', // orange
-  '#1baf7a', // aqua
-  '#eda100', // yellow
-  '#e87ba4', // magenta
-  '#008300', // green
-  '#4a3aa7', // violet
-  '#e34948', // red
+  '#2a78d6',
+  '#eb6834',
+  '#1baf7a',
+  '#eda100',
+  '#e87ba4',
+  '#008300',
+  '#4a3aa7',
+  '#e34948',
 ] as const
 
 const CATEGORICAL_DARK = [
@@ -72,43 +81,67 @@ const CATEGORICAL_DARK = [
 const light = {
   page: '#f9f9f7',
   surface: '#fcfcfb',
-  ink: '#0b0b0b', // 19.17:1
-  inkSecondary: '#45443f', // 8.79:1 on surface, 8.49:1 on the lightest tint
-  accent: '#184f95', // 7.89:1 as text, and under white at 7.89:1
-  accentHover: '#104281', // 9.66:1
-  series: '#2a78d6', // 4.30:1 — mark only
-  seriesAlt: '#eb6834', // 3.12:1 — mark only
+  ink: '#0b0b0b',
+  inkSecondary: '#45443f',
+  accent: '#184f95',
+  accentHover: '#104281',
+  series: '#2a78d6',
+  seriesAlt: '#eb6834',
   gridline: '#e1e0d9',
   baseline: '#c3c2b7',
   /** Control borders that are the only thing identifying an icon-only button. */
-  controlBorder: '#898781', // 3.50:1
+  controlBorder: '#898781',
   categorical: CATEGORICAL_LIGHT,
+  success: '#046004',
+  warning: '#8a3f00',
+  error: '#a01f1f',
 }
 
 const dark = {
   page: '#0d0d0d',
   surface: '#1a1a19',
-  ink: '#ffffff', // 17.42:1
-  inkSecondary: '#c3c2b7', // 9.72:1
-  accent: '#86b6ef', // 8.25:1
-  accentHover: '#b7d3f6', // 11.33:1
-  series: '#3987e5', // 4.79:1 — mark only
-  seriesAlt: '#d95926', // 3.55:1 — mark only
+  ink: '#ffffff',
+  inkSecondary: '#c3c2b7',
+  accent: '#86b6ef',
+  accentHover: '#b7d3f6',
+  series: '#3987e5',
+  seriesAlt: '#d95926',
   gridline: '#2c2c2a',
   baseline: '#383835',
   controlBorder: '#75736d',
   categorical: CATEGORICAL_DARK,
+  success: '#4fdb4f',
+  warning: '#e0a030',
+  error: '#f58a89',
 }
-
 
 export const tokens = { light, dark }
 
-const status = {
-  success: { main: '#0ca30c' },
-  warning: { main: '#b45309' },
-  error: { main: '#d03b3b' },
-}
+/**
+ * Success/warning/error, read from whichever scheme's tokens are passed in.
+ *
+ * Unlike `series`/`accent`, a single shared value can't serve both schemes:
+ * `StatChip` renders status colour as small mono text, so it needs the same
+ * AAA floor as ink rather than the 3:1 mark floor, and a colour that clears
+ * 7:1 on a light surface is nowhere near 7:1 on a dark one.
+ */
+const statusPalette = (t: Pick<typeof light, 'success' | 'warning' | 'error'>) => ({
+  success: { main: t.success },
+  warning: { main: t.warning },
+  error: { main: t.error },
+})
 
+/**
+ * Preferences are applied by rebuilding the theme, so no component needs to know
+ * they exist.
+ *
+ * Inside `styleOverrides`, read colours through `t.vars.palette`. `t.palette` is
+ * baked to the default scheme when the theme is created and does not change when
+ * the `.dark` class is applied, because that callback runs once rather than per
+ * scheme. `t.vars` holds `var(--mui-palette-*)` references that the browser
+ * resolves against whichever scheme is active. It is only undefined when CSS
+ * variables are disabled, which is why the plain palette stays as a fallback.
+ */
 export const createAppTheme = ({
   fontScale = 1,
   lineHeight = 1.5,
@@ -117,98 +150,100 @@ export const createAppTheme = ({
 }: AppThemeOptions = {}) =>
   createTheme({
     ...(reducedMotion ? { transitions: { create: () => 'none' } } : {}),
-  cssVariables: { colorSchemeSelector: 'class' },
-  defaultColorScheme: 'light',
-  colorSchemes: {
-    light: {
-      palette: {
-        mode: 'light',
-        primary: { main: light.accent, dark: light.accentHover, contrastText: light.surface },
-        background: { default: light.page, paper: light.surface },
-        text: { primary: light.ink, secondary: light.inkSecondary },
-        divider: light.gridline,
-        ...status,
-        viz: {
-          surface: light.surface,
-          series: light.series,
-          seriesAlt: light.seriesAlt,
-          gridline: light.gridline,
-          baseline: light.baseline,
-          label: light.inkSecondary,
-          categorical: light.categorical,
-        },
-      },
-    },
-    dark: {
-      palette: {
-        mode: 'dark',
-        primary: { main: dark.accent, dark: dark.accentHover, contrastText: dark.page },
-        background: { default: dark.page, paper: dark.surface },
-        text: { primary: dark.ink, secondary: dark.inkSecondary },
-        divider: dark.gridline,
-        ...status,
-        viz: {
-          surface: dark.surface,
-          series: dark.series,
-          seriesAlt: dark.seriesAlt,
-          gridline: dark.gridline,
-          baseline: dark.baseline,
-          label: dark.inkSecondary,
-          categorical: dark.categorical,
-        },
-      },
-    },
-  },
-  typography: {
-    fontFamily: hyperlegible ? HYPERLEGIBLE : SANS,
-    fontFamilyMono: MONO,
-    // MUI derives every rem size from this, so one number scales the app.
-    fontSize: 14 * fontScale,
-    body1: { lineHeight },
-    body2: { lineHeight },
-    h1: { fontSize: '1.4rem', fontWeight: 600, letterSpacing: '-0.3px' },
-    h2: { fontSize: '0.8125rem', fontWeight: 600, letterSpacing: '0.2px' },
-    button: { textTransform: 'none', fontWeight: 500 },
-  },
-  shape: { borderRadius: 8 },
-  components: {
-    MuiCard: { defaultProps: { variant: 'outlined' } },
-    MuiButtonBase: {
-      defaultProps: { disableRipple: true },
-      styleOverrides: {
-        root: ({ theme: t }) => ({
-          // Disabling the ripple also removes MUI's focus indicator, so the
-          // ring has to be put back explicitly. `:focus-visible` keeps it off
-          // mouse clicks and on for keyboard users.
-          '&.Mui-focusVisible, &:focus-visible': {
-            outline: `2px solid ${t.palette.primary.main}`,
-            outlineOffset: 2,
+    cssVariables: { colorSchemeSelector: 'class' },
+    defaultColorScheme: 'light',
+    colorSchemes: {
+      light: {
+        palette: {
+          mode: 'light',
+          primary: {
+            main: light.accent,
+            dark: light.accentHover,
+            contrastText: light.surface,
           },
-        }),
+          background: { default: light.page, paper: light.surface },
+          text: { primary: light.ink, secondary: light.inkSecondary },
+          divider: light.gridline,
+          control: { border: light.controlBorder },
+          ...statusPalette(light),
+          viz: {
+            surface: light.surface,
+            series: light.series,
+            seriesAlt: light.seriesAlt,
+            gridline: light.gridline,
+            baseline: light.baseline,
+            label: light.inkSecondary,
+            categorical: light.categorical,
+          },
+        },
+      },
+      dark: {
+        palette: {
+          mode: 'dark',
+          primary: { main: dark.accent, dark: dark.accentHover, contrastText: dark.page },
+          background: { default: dark.page, paper: dark.surface },
+          text: { primary: dark.ink, secondary: dark.inkSecondary },
+          divider: dark.gridline,
+          control: { border: dark.controlBorder },
+          ...statusPalette(dark),
+          viz: {
+            surface: dark.surface,
+            series: dark.series,
+            seriesAlt: dark.seriesAlt,
+            gridline: dark.gridline,
+            baseline: dark.baseline,
+            label: dark.inkSecondary,
+            categorical: dark.categorical,
+          },
+        },
       },
     },
-    MuiIconButton: {
-      styleOverrides: {
-        root: ({ theme: t }) => ({
-          border: `1px solid ${t.palette.mode === 'dark' ? dark.controlBorder : light.controlBorder}`,
-          borderRadius: 7,
-          minWidth: 44,
-          minHeight: 44,
-        }),
+    typography: {
+      fontFamily: hyperlegible ? HYPERLEGIBLE : SANS,
+      fontFamilyMono: MONO,
+      fontSize: 14 * fontScale,
+      body1: { lineHeight },
+      body2: { lineHeight },
+      h1: { fontSize: '1.4rem', fontWeight: 600, letterSpacing: '-0.3px' },
+      h2: { fontSize: '0.8125rem', fontWeight: 600, letterSpacing: '0.2px' },
+      button: { textTransform: 'none', fontWeight: 500 },
+    },
+    shape: { borderRadius: 8 },
+    components: {
+      MuiCard: { defaultProps: { variant: 'outlined' } },
+      MuiButtonBase: {
+        defaultProps: { disableRipple: true },
+        styleOverrides: {
+          root: ({ theme: t }) => ({
+            '&.Mui-focusVisible, &:focus-visible': {
+              outline: `2px solid ${t.vars ? t.vars.palette.primary.main : t.palette.primary.main}`,
+              outlineOffset: 2,
+            },
+          }),
+        },
       },
-    },
-    MuiButton: {
-      styleOverrides: {
-        root: { minHeight: 44 },
+      MuiIconButton: {
+        styleOverrides: {
+          root: ({ theme: t }) => ({
+            border: `1px solid ${t.vars ? t.vars.palette.control.border : t.palette.control.border}`,
+            borderRadius: 7,
+            minWidth: 44,
+            minHeight: 44,
+          }),
+        },
       },
+      MuiButton: {
+        styleOverrides: {
+          root: { minHeight: 44 },
+        },
+      },
+      MuiLink: {
+        defaultProps: { underline: 'hover' },
+      },
+      ...(reducedMotion
+        ? { MuiSkeleton: { defaultProps: { animation: false as const } } }
+        : {}),
     },
-    MuiLink: {
-      defaultProps: { underline: 'hover' },
-    },
-    ...(reducedMotion
-      ? { MuiSkeleton: { defaultProps: { animation: false as const } } }
-      : {}),
-  },
   })
 
 export const theme = createAppTheme()

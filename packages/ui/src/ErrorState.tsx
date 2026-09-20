@@ -8,6 +8,7 @@ export interface ErrorStateProps {
   error: GithubError
   onRetry?: () => void
   action?: React.ReactNode
+  /** Tighter spacing for a single repository row. It keeps the guidance. */
   dense?: boolean
 }
 
@@ -21,6 +22,15 @@ const describe = (error: GithubError): Described => {
   switch (error.kind) {
     case 'rate-limit': {
       const resets = formatRelativeDate(error.resetAt) ?? 'shortly'
+
+      if (error.secondary) {
+        return {
+          severity: 'warning',
+          title: 'GitHub asked us to slow down',
+          detail: `Too many requests at once. Your hourly quota is intact. Try again ${resets}.`,
+        }
+      }
+
       return {
         severity: 'warning',
         title: 'GitHub rate limit reached',
@@ -29,6 +39,13 @@ const describe = (error: GithubError): Described => {
           : `Unauthenticated requests are capped at 60 per hour. The limit resets ${resets}. Adding a personal access token raises it to 5,000.`,
       }
     }
+    case 'unauthorized':
+      return {
+        severity: 'error',
+        title: 'GitHub rejected your token',
+        detail:
+          'It may have expired, been revoked, or been mistyped. Replace or remove it in Settings.',
+      }
     case 'not-found':
       return {
         severity: 'error',
@@ -57,7 +74,9 @@ const describe = (error: GithubError): Described => {
       return {
         severity: 'error',
         title: 'Something went wrong',
-        detail: error.status ? `GitHub responded with ${error.status}.` : 'Please try again.',
+        detail: error.status
+          ? `GitHub responded with ${error.status}.`
+          : 'Please try again.',
       }
   }
 }
@@ -69,7 +88,7 @@ export function ErrorState({ error, onRetry, action, dense = false }: ErrorState
     <Alert
       severity={severity}
       variant="outlined"
-      sx={{ alignItems: 'flex-start' }}
+      sx={{ alignItems: 'flex-start', ...(dense ? { py: 0.25, fontSize: 13 } : {}) }}
       action={
         onRetry || action ? (
           <>
@@ -83,8 +102,16 @@ export function ErrorState({ error, onRetry, action, dense = false }: ErrorState
         ) : null
       }
     >
-      {dense ? null : <AlertTitle>{title}</AlertTitle>}
-      {dense ? title : detail}
+      {dense ? (
+        <>
+          <strong>{title}</strong>. {detail}
+        </>
+      ) : (
+        <>
+          <AlertTitle>{title}</AlertTitle>
+          {detail}
+        </>
+      )}
     </Alert>
   )
 }

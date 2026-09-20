@@ -59,7 +59,9 @@ export interface RepoTableRowProps {
   actions?: ReactNode
 }
 
-const freshness = (iso: string | null): { label: string; tone: 'success' | 'warning' | 'error' } => {
+const freshness = (
+  iso: string | null,
+): { label: string; tone: 'success' | 'warning' | 'error' } => {
   if (!iso) return { label: 'Unknown', tone: 'warning' }
 
   const days = (Date.now() - Date.parse(iso)) / 86_400_000
@@ -70,7 +72,13 @@ const freshness = (iso: string | null): { label: string; tone: 'success' | 'warn
 
 const MONO = { fontFamily: (t: Theme) => t.typography.fontFamilyMono }
 
-
+/**
+ * A failed row replaces only its own stats; every other row keeps its data.
+ *
+ * Freshness is the one place colour carries meaning. The dot is decorative and
+ * the visually hidden label is what reaches assistive technology, so colour is
+ * never the only signal.
+ */
 export function RepoTableRow({
   fullName,
   avatarUrl,
@@ -101,7 +109,12 @@ export function RepoTableRow({
           <Typography
             variant="body2"
             color="text.secondary"
-            sx={{ fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+            sx={{
+              fontSize: 12,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
           >
             {description}
           </Typography>
@@ -133,7 +146,11 @@ export function RepoTableRow({
       </TableCell>
 
       <TableCell align="right" sx={{ ...MONO, fontVariantNumeric: 'tabular-nums' }}>
-        {loading || !stats ? <Skeleton width={46} sx={{ ml: 'auto' }} /> : formatCompactNumber(stats.stars)}
+        {loading || !stats ? (
+          <Skeleton width={46} sx={{ ml: 'auto' }} />
+        ) : (
+          formatCompactNumber(stats.stars)
+        )}
       </TableCell>
 
       <TableCell
@@ -171,8 +188,6 @@ export function RepoTableRow({
             <Typography variant="body2" sx={{ fontSize: 13 }}>
               {formatRelativeDate(stats.lastCommitAt) ?? 'Unknown'}
             </Typography>
-            {/* The dot is decorative; this is what actually conveys freshness
-                to a screen reader, so colour is never the only signal. */}
             <Box component="span" sx={visuallyHidden}>
               {fresh.label}
             </Box>

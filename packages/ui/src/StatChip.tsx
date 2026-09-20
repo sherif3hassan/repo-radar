@@ -1,21 +1,27 @@
 import Box from '@mui/material/Box'
 import Tooltip from '@mui/material/Tooltip'
 import type { Theme } from '@mui/material/styles'
+import { visuallyHidden } from '@repo-radar/util'
+import { useId } from 'react'
 
 import { Icon, type IconName } from './Icon'
 
 export interface StatChipProps {
   icon?: IconName
-  dot?: string
   label: string
   hint?: string
   tone?: 'neutral' | 'success' | 'warning' | 'error'
 }
 
-export function StatChip({ icon, dot, label, hint, tone = 'neutral' }: StatChipProps) {
+/** A hinted chip is focusable and described statically, for the reasons given on `StatTile`. */
+export function StatChip({ icon, label, hint, tone = 'neutral' }: StatChipProps) {
+  const hintId = useId()
+
   const chip = (
     <Box
       component="span"
+      tabIndex={hint ? 0 : undefined}
+      aria-describedby={hint ? hintId : undefined}
       sx={(theme: Theme) => ({
         display: 'inline-flex',
         alignItems: 'center',
@@ -41,14 +47,12 @@ export function StatChip({ icon, dot, label, hint, tone = 'neutral' }: StatChipP
       })}
     >
       {icon ? <Icon name={icon} size={12} /> : null}
-      {dot ? (
-        <Box
-          component="span"
-          aria-hidden="true"
-          sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dot, flexShrink: 0 }}
-        />
-      ) : null}
       {label}
+      {hint ? (
+        <Box component="span" id={hintId} sx={visuallyHidden}>
+          {hint}
+        </Box>
+      ) : null}
     </Box>
   )
 

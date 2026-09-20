@@ -1,4 +1,10 @@
-export { theme, createAppTheme, tokens, type AppThemeOptions, type VizPalette } from './theme'
+export {
+  theme,
+  createAppTheme,
+  tokens,
+  type AppThemeOptions,
+  type VizPalette,
+} from './theme'
 export { Icon, type IconName, type IconProps } from './Icon'
 export { ErrorState, type ErrorStateProps } from './ErrorState'
 export { EmptyState, type EmptyStateProps } from './EmptyState'

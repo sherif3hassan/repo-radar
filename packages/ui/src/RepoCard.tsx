@@ -47,12 +47,23 @@ export function RepoCard({
     <Card component="article" aria-label={fullName}>
       <CardContent>
         <Stack direction="row" spacing={2} alignItems="flex-start">
-          <Avatar src={avatarUrl} alt="" variant="rounded" sx={{ width: 40, height: 40 }} />
+          <Avatar
+            src={avatarUrl}
+            alt=""
+            variant="rounded"
+            sx={{ width: 40, height: 40 }}
+          />
 
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600 }}>
+            <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 600 }}>
               {htmlUrl ? (
-                <Link href={htmlUrl} target="_blank" rel="noreferrer" underline="hover" color="inherit">
+                <Link
+                  href={htmlUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  underline="hover"
+                  color="inherit"
+                >
                   {fullName}
                 </Link>
               ) : (

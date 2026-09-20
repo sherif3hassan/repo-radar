@@ -18,7 +18,10 @@ const luminance = (hex: string): number => {
 }
 
 export const contrast = (a: string, b: string): number => {
-  const [lighter, darker] = [luminance(a), luminance(b)].sort((x, y) => y - x) as [number, number]
+  const [lighter, darker] = [luminance(a), luminance(b)].sort((x, y) => y - x) as [
+    number,
+    number,
+  ]
   return (lighter + 0.05) / (darker + 0.05)
 }
 
@@ -39,11 +42,13 @@ describe.each([
       ['secondary ink on page', t.inkSecondary, t.page],
       ['accent as link text on surface', t.accent, t.surface],
       ['accent hover on surface', t.accentHover, t.surface],
+      ['success status text on surface', t.success, t.surface],
+      ['warning status text on surface', t.warning, t.surface],
+      ['error status text on surface', t.error, t.surface],
     ])('%s', (_label, fg, bg) => {
       expect(contrast(fg, bg)).toBeGreaterThanOrEqual(AAA_TEXT)
     })
 
-    // Button text sits ON the accent rather than beside it.
     it('surface text on an accent fill', () => {
       expect(contrast(t.surface, t.accent)).toBeGreaterThanOrEqual(AAA_TEXT)
     })
