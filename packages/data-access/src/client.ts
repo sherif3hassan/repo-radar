@@ -1,8 +1,17 @@
 import type { GithubError, RateLimit } from '@repo-radar/types'
 import type { BaseQueryFn } from '@reduxjs/toolkit/query'
 
-import { ACCEPT, API_ROOT, API_VERSION } from './constants'
+import {
+  ACCEPT,
+  API_ROOT,
+  API_VERSION,
+  MAX_CONCURRENT_REQUESTS,
+  SECONDARY_LIMIT_BACKOFF_SECONDS,
+} from './constants'
+import { createLimiter } from './limiter'
 import { recordRateLimit } from './rateLimitStore'
+
+const limiter = createLimiter(MAX_CONCURRENT_REQUESTS)
 
 /**
  * The token is supplied by the app, never read from the environment here.
@@ -33,7 +42,12 @@ export const parseRateLimit = (headers: Headers): RateLimit | null => {
 
   if (limit === null || remaining === null || reset === null) return null
 
-  return { limit, remaining, resetAt: new Date(reset * 1000).toISOString() }
+  return {
+    limit,
+    remaining,
+    resetAt: new Date(reset * 1000).toISOString(),
+    resource: headers.get('x-ratelimit-resource') ?? 'core',
+  }
 }
 
 /**
@@ -59,13 +73,25 @@ const explain = (body: unknown): string | null => {
   return typeof message === 'string' ? message : null
 }
 
+/**
+ * Maps an HTTP failure onto the domain error union.
+ *
+ * 403 is overloaded: an exhausted quota, a secondary limit, or a plain refusal.
+ * The secondary limit throttles bursts and leaves the hourly budget intact, so
+ * `remaining` is not zero; it announces itself with `Retry-After`, a 429, or its
+ * message. A 401 is a bad token, which the user can fix but only gets the chance
+ * to if it is not folded into "something went wrong".
+ */
 export const toGithubError = (
   status: number,
   headers: Headers,
   authenticated: boolean,
   body?: unknown,
+  now: number = Date.now(),
 ): GithubError => {
   if (status === 404) return { kind: 'not-found' }
+
+  if (status === 401) return { kind: 'unauthorized' }
 
   if (status === 422) {
     return {
@@ -74,15 +100,24 @@ export const toGithubError = (
     }
   }
 
-  // 403 is overloaded: exhausted quota, secondary rate limit, or plain refusal.
-  // Only a zero remaining budget makes it a rate-limit error.
   if (status === 403 || status === 429) {
     const rateLimit = parseRateLimit(headers)
     if (rateLimit && rateLimit.remaining === 0) {
       return { kind: 'rate-limit', resetAt: rateLimit.resetAt, authenticated }
     }
-    // Falls through to `unknown` — a 403 with budget left is a refusal, not
-    // rate limiting.
+
+    const retryAfter = headerNumber(headers, 'retry-after')
+    const message = explain(body) ?? ''
+
+    if (retryAfter !== null || status === 429 || /rate limit/i.test(message)) {
+      const wait = retryAfter ?? SECONDARY_LIMIT_BACKOFF_SECONDS
+      return {
+        kind: 'rate-limit',
+        resetAt: new Date(now + wait * 1000).toISOString(),
+        authenticated,
+        secondary: true,
+      }
+    }
   }
 
   return { kind: 'unknown', status }
@@ -96,7 +131,6 @@ export interface GithubRequest {
 export interface GithubMeta {
   rateLimit: RateLimit | null
   status: number
-  /** The `Link` header, when present — carries pagination bounds. */
   link: string | null
 }
 
@@ -118,6 +152,15 @@ export const countFromLink = (link: string | null, itemsOnFirstPage: number): nu
  * Returns raw JSON. Validation happens per-endpoint with the schemas from
  * `@repo-radar/types`, so a malformed response becomes a typed parse error at
  * this boundary rather than an `undefined` three components deep.
+ *
+ * The abort signal goes to both the limiter and `fetch`: the limiter drops a
+ * request superseded while still queued, and `fetch` cancels one already on the
+ * wire. RTK Query aborts the previous request when a query's argument changes,
+ * so without this every superseded search would run to completion.
+ *
+ * Offline, DNS failure and CORS are indistinguishable from here, and the user
+ * needs the same advice for all of them, so they share the `network` error. An
+ * aborted request lands there too, but RTK Query discards its own aborts.
  */
 export const githubBaseQuery: BaseQueryFn<
   GithubRequest,
@@ -125,7 +168,7 @@ export const githubBaseQuery: BaseQueryFn<
   GithubError,
   object,
   GithubMeta
-> = async ({ path, params }) => {
+> = async ({ path, params }, { signal }) => {
   const url = new URL(path, API_ROOT)
   for (const [key, value] of Object.entries(params ?? {})) {
     if (value !== undefined) url.searchParams.set(key, String(value))
@@ -140,10 +183,8 @@ export const githubBaseQuery: BaseQueryFn<
 
   let response: Response
   try {
-    response = await fetch(url, { headers })
+    response = await limiter.run(() => fetch(url, { headers, signal }), signal)
   } catch {
-    // Offline, DNS failure, CORS — indistinguishable from here, and the user
-    // needs the same advice for all of them.
     return { error: { kind: 'network' } }
   }
 
@@ -157,8 +198,6 @@ export const githubBaseQuery: BaseQueryFn<
   }
 
   if (!response.ok) {
-    // Read the body: GitHub explains 422s precisely, and that message is far
-    // more actionable than the status code.
     const body: unknown = await response.json().catch(() => null)
     return {
       error: toGithubError(response.status, response.headers, Boolean(token), body),

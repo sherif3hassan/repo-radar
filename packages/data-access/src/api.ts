@@ -11,11 +11,7 @@ import {
 } from '@repo-radar/types'
 
 import { countFromLink, githubBaseQuery } from './client'
-import {
-  CACHE_TTL_SECONDS,
-  COUNT_PROBE_PAGE_SIZE,
-  SEARCH_PAGE_SIZE,
-} from './constants'
+import { CACHE_TTL_SECONDS, COUNT_PROBE_PAGE_SIZE, SEARCH_PAGE_SIZE } from './constants'
 
 export interface SearchArgs {
   q: string
@@ -42,7 +38,6 @@ export const githubApi = createApi({
       },
     }),
 
-
     getRepoStats: build.query<RepoStats, RepoRef>({
       async queryFn(ref, _api, _extra, baseQuery) {
         const [repoResponse, commitResponse, pullsResponse] = await Promise.all([
@@ -67,7 +62,6 @@ export const githubApi = createApi({
           const commit = parseWith(latestCommitSchema, commitResponse.data)
           if (commit.ok) lastCommitAt = commit.value
         }
-
 
         let openPullRequests: number | null = null
         if (!pullsResponse.error && Array.isArray(pullsResponse.data)) {
