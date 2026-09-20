@@ -12,6 +12,12 @@ import { useAppDispatch } from '../../app/hooks'
  */
 const CONCURRENCY = 3
 
+/**
+ * A failure is already recorded on that repository's own cache entry and
+ * rendered by its row, so it is swallowed here: one bad repository must not
+ * abort the rest. Each request is unsubscribed when done, otherwise its entry
+ * would never become eligible for cache cleanup.
+ */
 export function useRefreshAll(refs: readonly RepoRef[]) {
   const dispatch = useAppDispatch()
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -28,11 +34,7 @@ export function useRefreshAll(refs: readonly RepoRef[]) {
         try {
           await request
         } catch {
-          // Already recorded on that repository's own cache entry and rendered
-          // by its own row. One bad repo must not abort the rest.
         } finally {
-          // `initiate` adds a subscription; without this the entry would never
-          // become eligible for cache cleanup.
           request.unsubscribe()
         }
       })

@@ -12,20 +12,24 @@ import { Link } from 'react-router'
 
 import { useTracking } from '../../app/tracking'
 import { ChartPanel } from './ChartPanel'
+import { SummaryCard } from './SummaryCard'
 import { TrackedRepo } from './TrackedRepoCard'
 import { useRefreshAll } from './useRefreshAll'
 import { useTrackedMetrics } from './useTrackedMetrics'
 
+/**
+ * A table is for comparing columns. Below `md` there are none worth comparing,
+ * so each repository becomes a card instead.
+ *
+ * The app maps the domain model onto the charts' generic shape, which is what
+ * lets `plots` stay domain-agnostic.
+ */
 export function TrackedPage() {
   const theme = useTheme()
-  // A table is for comparing columns; below this width there are no columns
-  // worth comparing, so each repository becomes its own card instead.
   const stacked = useMediaQuery(theme.breakpoints.down('md'))
   const { refs } = useTracking()
   const { refreshAll, isRefreshing } = useRefreshAll(refs)
 
-  // `apps/web` owns the mapping from the domain model to the charts' generic
-  // shape, which is what lets `plots` stay domain-agnostic.
   const metrics = useTrackedMetrics(refs)
 
   if (refs.length === 0) {
@@ -49,7 +53,12 @@ export function TrackedPage() {
 
   return (
     <Stack spacing={3}>
-      <Stack direction="row" alignItems="baseline" justifyContent="space-between" spacing={2}>
+      <Stack
+        direction="row"
+        alignItems="baseline"
+        justifyContent="space-between"
+        spacing={2}
+      >
         <Stack direction="row" spacing={1.5} alignItems="baseline">
           <Typography variant="h1" component="h1">
             Tracked
@@ -69,8 +78,7 @@ export function TrackedPage() {
         </Button>
       </Stack>
 
-      {/* Renders nothing until at least one repository resolves, so the charts
-          never claim nothing is tracked while repositories are merely loading. */}
+      <SummaryCard metrics={metrics} />
       <ChartPanel metrics={metrics} />
 
       {stacked ? (

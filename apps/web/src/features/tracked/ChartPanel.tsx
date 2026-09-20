@@ -2,11 +2,11 @@ import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
-import { useTheme } from '@mui/material/styles'
 import { CategoryBarChart, MagnitudeBarChart, StalenessBarChart } from '@repo-radar/plots'
 import { useId, useState } from 'react'
 
 import { useReducedMotion } from '../../app/preferences'
+import { useVizPalette } from '../../app/viz'
 import type { TrackedMetrics } from './useTrackedMetrics'
 
 const VIEWS = ['Stars', 'Issues', 'Activity', 'Languages'] as const
@@ -21,7 +21,7 @@ type View = (typeof VIEWS)[number]
  * bars are long.
  */
 export function ChartPanel({ metrics }: { metrics: TrackedMetrics }) {
-  const theme = useTheme()
+  const viz = useVizPalette()
   const reducedMotion = useReducedMotion()
   const [view, setView] = useState<View>('Stars')
   const baseId = useId()
@@ -52,18 +52,12 @@ export function ChartPanel({ metrics }: { metrics: TrackedMetrics }) {
         ))}
       </Tabs>
 
-      <CardContent
-        role="tabpanel"
-        id={panelId}
-        aria-labelledby={`${tabId}-${view}`}
-        // Each chart ships its own accessible table, so the panel itself needs
-        // no further description.
-      >
+      <CardContent role="tabpanel" id={panelId} aria-labelledby={`${tabId}-${view}`}>
         {view === 'Stars' ? (
           <MagnitudeBarChart
             title="Stars per tracked repository"
             data={metrics.stars}
-            color={theme.palette.viz.series}
+            color={viz.series}
             skipAnimation={reducedMotion}
           />
         ) : null}
@@ -72,9 +66,7 @@ export function ChartPanel({ metrics }: { metrics: TrackedMetrics }) {
           <MagnitudeBarChart
             title="Open issues per tracked repository"
             data={metrics.issues}
-            // The documented second hue, so two magnitudes never read as one
-            // scale in different shades.
-            color={theme.palette.viz.seriesAlt}
+            color={viz.seriesAlt}
             skipAnimation={reducedMotion}
           />
         ) : null}
@@ -87,7 +79,7 @@ export function ChartPanel({ metrics }: { metrics: TrackedMetrics }) {
           <CategoryBarChart
             title="Repositories by language"
             data={metrics.languages}
-            colors={theme.palette.viz.categorical}
+            colors={viz.categorical}
             skipAnimation={reducedMotion}
           />
         ) : null}

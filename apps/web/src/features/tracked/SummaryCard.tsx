@@ -8,6 +8,7 @@ import { ShareBar } from '@repo-radar/plots'
 import { StatTile } from '@repo-radar/ui'
 import { formatCompactNumber } from '@repo-radar/util'
 
+import { useVizPalette } from '../../app/viz'
 import type { TrackedMetrics } from './useTrackedMetrics'
 
 const days = (value: number | null): string | null => {
@@ -26,6 +27,7 @@ const days = (value: number | null): string | null => {
  */
 export function SummaryCard({ metrics }: { metrics: TrackedMetrics }) {
   const theme = useTheme()
+  const viz = useVizPalette()
 
   if (!metrics.hasData) return null
 
@@ -38,7 +40,11 @@ export function SummaryCard({ metrics }: { metrics: TrackedMetrics }) {
           direction={{ xs: 'column', sm: 'row' }}
           spacing={{ xs: 2, sm: 4 }}
           divider={
-            <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+            <Divider
+              orientation="vertical"
+              flexItem
+              sx={{ display: { xs: 'none', sm: 'block' } }}
+            />
           }
           sx={{ mb: metrics.languages.length > 0 ? 3 : 0 }}
         >
@@ -61,7 +67,8 @@ export function SummaryCard({ metrics }: { metrics: TrackedMetrics }) {
             <ShareBar
               title="Languages"
               data={metrics.languages}
-              colors={theme.palette.viz.categorical}
+              colors={viz.categorical}
+              monoFontFamily={theme.typography.fontFamilyMono}
             />
           </Box>
         ) : null}

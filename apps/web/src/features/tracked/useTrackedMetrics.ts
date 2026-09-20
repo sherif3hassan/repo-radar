@@ -16,23 +16,29 @@ interface Resolved {
   language: string | null
 }
 
+const FIELDS_PER_REPO = 4
+
 /**
  * Every tracked repository that has resolved, in one pass.
  *
- * One selector rather than one per chart: each would otherwise walk the cache
- * separately, and the views share the same underlying entries.
+ * One selector rather than one per chart, since each would otherwise walk the
+ * same cache entries. Repositories still loading or errored are absent, so the
+ * charts show what is known rather than blocking on the slowest request.
  *
- * Repositories still loading or errored are absent, so the charts show what is
- * known rather than blocking on the slowest request.
+ * The selector returns a flat array of primitives, not one tuple per
+ * repository. `shallowEqual` compares elements by identity, so a fresh tuple per
+ * entry never compares equal and every store dispatch would rebuild all the
+ * chart data. Unresolved repositories contribute nulls to keep positions stable.
  */
 function useResolved(refs: readonly RepoRef[]): Resolved[] {
   const raw = useAppSelector(
     (state) =>
-      refs.map((ref) => {
+      refs.flatMap((ref) => {
         const { data } = githubApi.endpoints.getRepoStats.select(ref)(state)
+
         return data
-          ? ([data.stars, data.openIssues, data.lastCommitAt, data.language] as const)
-          : null
+          ? [data.stars, data.openIssues, data.lastCommitAt, data.language]
+          : [null, null, null, null]
       }),
     shallowEqual,
   )
@@ -40,19 +46,29 @@ function useResolved(refs: readonly RepoRef[]): Resolved[] {
   return useMemo(
     () =>
       refs.flatMap((ref, index) => {
-        const entry = raw[index]
-        if (!entry) return []
+        const base = index * FIELDS_PER_REPO
+        const stars = raw[base]
+        const openIssues = raw[base + 1]
+        const lastCommitAt = raw[base + 2]
+        const language = raw[base + 3]
 
-        const [stars, openIssues, lastCommitAt, language] = entry
-        return [{ ref, stars, openIssues, lastCommitAt, language }]
+        if (typeof stars !== 'number' || typeof openIssues !== 'number') return []
+
+        return [
+          {
+            ref,
+            stars,
+            openIssues,
+            lastCommitAt: typeof lastCommitAt === 'string' ? lastCommitAt : null,
+            language: typeof language === 'string' ? language : null,
+          },
+        ]
       }),
     [refs, raw],
   )
 }
 
 const toDatum = (resolved: Resolved, value: number): BarDatum => ({
-  // `plots` is domain-agnostic, so the app decides that the short form of
-  // `owner/name` is `name`.
   label: toFullName(resolved.ref),
   shortLabel: resolved.ref.name,
   value,
@@ -75,7 +91,6 @@ export interface TrackedMetrics {
   staleness: BarDatum[]
   languages: BarDatum[]
   totals: TrackedTotals
-  /** True once at least one repository has data to chart. */
   hasData: boolean
 }
 
@@ -90,11 +105,13 @@ const median = (values: readonly number[]): number | null => {
     : (sorted[middle] ?? null)
 }
 
+/**
+ * The timestamp is captured once per mount: "days ago" does not need to tick,
+ * and reading the clock during render would make the computation impure.
+ */
 export function useTrackedMetrics(refs: readonly RepoRef[]): TrackedMetrics {
   const resolved = useResolved(refs)
 
-  // Captured once per mount: "days ago" does not need to tick, and reading the
-  // clock during render makes the computation impure.
   const [now] = useState(() => Date.now())
 
   return useMemo(() => {

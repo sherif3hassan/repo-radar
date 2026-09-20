@@ -48,5 +48,7 @@ export const selectTrackedRefs = createSelector([selectIds], (ids) =>
   ids.map(parseFullName).filter((ref): ref is RepoRef => ref !== null),
 )
 
-export const selectIsTracked = (state: { tracked: TrackedState }, ref: RepoRef): boolean =>
-  state.tracked.ids.includes(toFullName(ref))
+export const selectIsTracked = (
+  state: { tracked: TrackedState },
+  ref: RepoRef,
+): boolean => state.tracked.ids.includes(toFullName(ref))
