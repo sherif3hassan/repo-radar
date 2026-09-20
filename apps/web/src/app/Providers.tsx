@@ -26,7 +26,6 @@ function Themed({ children }: { children: ReactNode }) {
 
   useHyperlegibleFont(preferences.font === 'hyperlegible')
 
-  // An explicit choice wins; otherwise the OS setting is honoured.
   const reducedMotion = preferences.motion === 'reduced' || systemReducedMotion
 
   const theme = useMemo(

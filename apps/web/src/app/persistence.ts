@@ -23,23 +23,34 @@ const persistedSchema = z.object({
   /**
    * Added after v1 shipped, and deliberately NOT a version bump: an unknown
    * version is discarded, which would throw away a returning user's tracked
-   * repositories to gain a settings default. An optional field with a default
-   * reads old payloads unchanged.
+   * repositories to gain a settings default.
+   *
+   * `.catch()` rather than `.default()`: `.default()` only substitutes for a
+   * *missing* key, so a present-but-invalid value (e.g. an old build's
+   * preferences after a preference enum value is renamed) would still fail
+   * the whole object and wipe `trackedIds` and the token along with it —
+   * exactly the failure this field exists to avoid. `.catch()` substitutes
+   * the default for both a missing key and an invalid one, so a malformed
+   * `preferences` block degrades to defaults without taking the rest of the
+   * payload down with it.
    */
-  preferences: preferencesSchema.default(defaultPreferences),
+  preferences: preferencesSchema.catch(defaultPreferences),
 })
 
 export type PersistedState = z.infer<typeof persistedSchema>
 
 const CURRENT_VERSION = 1 as const
 
-/** Never throws. A malformed or unreadable payload yields null and is cleared. */
+/**
+ * Never throws. Storage that is blocked, as in private browsing, yields null and
+ * the app carries on without persistence. A payload from an older version, or a
+ * corrupt one, is cleared rather than carried forward.
+ */
 export const loadPersistedState = (): PersistedState | null => {
   let raw: string | null
   try {
     raw = window.localStorage.getItem(STORAGE_KEY)
   } catch {
-    // Private mode, or site data blocked. The app works without persistence.
     return null
   }
 
@@ -48,34 +59,26 @@ export const loadPersistedState = (): PersistedState | null => {
   try {
     const parsed = persistedSchema.safeParse(JSON.parse(raw))
     if (parsed.success) return parsed.data
-  } catch {
-    // Not valid JSON.
-  }
+  } catch {}
 
-  // Written by an older version, or corrupt. Drop it rather than carry it.
   try {
     window.localStorage.removeItem(STORAGE_KEY)
-  } catch {
-    /* nothing more to do */
-  }
+  } catch {}
   return null
 }
 
+/** Best effort: a full or disabled storage is not worth interrupting the user for. */
 export const savePersistedState = (state: Omit<PersistedState, 'version'>): void => {
   try {
     window.localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({ version: CURRENT_VERSION, ...state } satisfies PersistedState),
     )
-  } catch {
-    // Quota exceeded or storage disabled — not worth interrupting the user.
-  }
+  } catch {}
 }
 
 export const clearPersistedState = (): void => {
   try {
     window.localStorage.removeItem(STORAGE_KEY)
-  } catch {
-    /* ignore */
-  }
+  } catch {}
 }

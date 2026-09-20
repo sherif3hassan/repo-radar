@@ -36,8 +36,10 @@ const rootReducer = combineReducers({
   tracked: trackedReducer,
 })
 
-// Derived from the reducer rather than from the store, so the listener
-// middleware below can be typed without referencing its own output type.
+/**
+ * Derived from the reducer rather than the store, so the listener middleware can
+ * be typed without referencing its own output type.
+ */
 export type RootState = ReturnType<typeof rootReducer>
 
 /** Long enough to collapse a burst of clicks, short enough to survive a tab close. */
@@ -60,7 +62,6 @@ startListening({
     preferencesReset,
   ),
   effect: async (_action, api) => {
-    // Collapse a burst — untracking several repos quickly writes once.
     api.cancelActiveListeners()
     await api.delay(PERSIST_DEBOUNCE_MS)
 
@@ -73,18 +74,31 @@ startListening({
   },
 })
 
-export const makeStore = (preloadedState?: Partial<RootState>) =>
-  configureStore({
+/**
+ * Binds the singleton accessor inside `makeStore` itself, rather than once at
+ * module scope, so every store this factory produces — including one a test
+ * injects through `Providers` — is the one `data-access` actually reads the
+ * token from. Bound only at module scope, a store created for a test would
+ * dispatch `Authorization: null` while the last-created store's token leaked
+ * into it instead.
+ */
+export const makeStore = (preloadedState?: Partial<RootState>) => {
+  const store = configureStore({
     reducer: rootReducer,
     preloadedState,
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().prepend(listener.middleware).concat(githubApi.middleware),
   })
 
+  setTokenAccessor(() => store.getState().settings.token)
+
+  return store
+}
+
 export type AppStore = ReturnType<typeof makeStore>
 export type AppDispatch = AppStore['dispatch']
 
-const hydrate = (): Partial<RootState> | undefined => {
+export const hydrate = (): Partial<RootState> | undefined => {
   const persisted = loadPersistedState()
   if (!persisted) return undefined
 
@@ -96,9 +110,3 @@ const hydrate = (): Partial<RootState> | undefined => {
 }
 
 export const store = makeStore(hydrate())
-
-/**
- * Dependency injection at the composition root: `data-access` never reads the
- * store or the environment, it just asks for the current token.
- */
-setTokenAccessor(() => store.getState().settings.token)

@@ -1,5 +1,4 @@
 import react from '@vitejs/plugin-react'
-// vitest/config, not vite — only this one accepts the `test` key.
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
