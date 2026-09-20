@@ -90,7 +90,16 @@ function Navigation() {
  */
 export function App() {
   return (
-    <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default' }}>
+    <Box
+      sx={(t) => ({
+        minHeight: '100dvh',
+        bgcolor: 'background.default',
+        backgroundImage: `radial-gradient(1100px 480px at 50% -10%, ${
+          t.vars ? t.vars.palette.decor.glow : t.palette.decor.glow
+        }, transparent 70%)`,
+        backgroundRepeat: 'no-repeat',
+      })}
+    >
       <Box
         component="a"
         href="#main"

@@ -14,12 +14,7 @@ storybook-static/
 .env.local
 .env.*.local
 
-# Local working notes, deliberately not pushed.
-COMMITS.md
-STATUS.md
-TODO.md
-REVIEW-FIXES.md
-review.md
+
 .claude/
 
 .DS_Store

@@ -12,7 +12,18 @@ import { useChartColors } from './useChartColors'
 export interface MagnitudeBarChartProps {
   data: readonly BarDatum[]
   title?: string
+  emptyMessage?: string
   height?: number
+  /**
+   * Rows to reserve height for even before they resolve.
+   *
+   * Tracked repositories arrive one at a time as their queries settle, so
+   * sizing height off `data.length` alone would grow the chart — and shift
+   * everything below it — on every arrival. Passing the total tracked count
+   * reserves the final height up front; the chart still only draws the rows
+   * it has.
+   */
+  minRows?: number
   color?: string
   skipAnimation?: boolean
   monoFontFamily?: string
@@ -41,7 +52,9 @@ const LABEL_WIDTH = { wide: 168, narrow: 88 } as const
 export function MagnitudeBarChart({
   data,
   title = 'Stars per tracked repository',
+  emptyMessage = 'Track a repository to see how its stars compare.',
   height,
+  minRows,
   color,
   skipAnimation = false,
   monoFontFamily,
@@ -63,11 +76,23 @@ export function MagnitudeBarChart({
     [data, narrow],
   )
 
+  const resolvedHeight =
+    height ?? Math.max(sorted.length, minRows ?? 0) * ROW_HEIGHT + CHART_CHROME
+
   if (data.length === 0) {
     return (
-      <Box sx={{ py: 4, textAlign: 'center' }}>
+      <Box
+        sx={{
+          minHeight: minRows ? resolvedHeight : undefined,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          py: 4,
+          textAlign: 'center',
+        }}
+      >
         <Typography variant="body2" color="text.secondary">
-          Track a repository to see how its stars compare.
+          {emptyMessage}
         </Typography>
       </Box>
     )
@@ -105,7 +130,7 @@ export function MagnitudeBarChart({
         aria-hidden="true"
         dataset={sorted}
         layout="horizontal"
-        height={height ?? sorted.length * ROW_HEIGHT + CHART_CHROME}
+        height={resolvedHeight}
         hideLegend
         skipAnimation={skipAnimation}
         grid={{ vertical: true }}

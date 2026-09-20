@@ -41,6 +41,37 @@ describe('RepoCard', () => {
     expect(screen.queryByText('228K')).not.toBeInTheDocument()
   })
 
+  /**
+   * The skeleton-to-stats swap is React replacing one DOM node with another,
+   * not a style change on a node that persists — a `transition` cannot
+   * animate that, only a mount-time `animation` can. This is the moment a
+   * tracked repository's numbers actually arrive, so it is the one place in
+   * the card worth confirming settles in rather than snapping.
+   *
+   * Asserted against the injected stylesheet rather than `getComputedStyle`:
+   * jsdom's CSS engine does not resolve the `display: contents` + child
+   * combinator this relies on to keep the stat chips in the parent's flex
+   * row (verified against real Chrome via the `RepoCard` Storybook story
+   * instead — computed `animationName` came back correctly set there).
+   */
+  it('animates the stats in when the loading skeleton resolves', () => {
+    const { rerender } = render(<RepoCard fullName="facebook/react" loading />)
+
+    rerender(<RepoCard fullName="facebook/react" stats={stats} />)
+
+    const rules = Array.from(document.styleSheets).flatMap((sheet) => {
+      try {
+        return Array.from(sheet.cssRules).map((rule) => rule.cssText)
+      } catch {
+        return []
+      }
+    })
+
+    expect(rules.some((rule) => /animation:\s*animation-\w+ 240ms ease-out both/.test(rule))).toBe(
+      true,
+    )
+  })
+
   it('links the name to the repository when a URL is given', () => {
     render(
       <RepoCard

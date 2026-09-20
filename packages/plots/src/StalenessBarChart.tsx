@@ -13,6 +13,11 @@ export interface StalenessBarChartProps {
   data: readonly BarDatum[]
   title?: string
   height?: number
+  /**
+   * Rows to reserve height for even before they resolve. See
+   * `MagnitudeBarChart`'s `minRows` — same rationale, same shape.
+   */
+  minRows?: number
   thresholds?: { active: number; quiet: number }
   skipAnimation?: boolean
   monoFontFamily?: string
@@ -42,6 +47,7 @@ export function StalenessBarChart({
   data,
   title = 'Days since last commit',
   height,
+  minRows,
   thresholds = DEFAULT_THRESHOLDS,
   skipAnimation = false,
   monoFontFamily,
@@ -66,7 +72,27 @@ export function StalenessBarChart({
     [data, narrow],
   )
 
-  if (data.length === 0) return null
+  const resolvedHeight =
+    height ?? Math.max(sorted.length, minRows ?? 0) * ROW_HEIGHT + CHART_CHROME
+
+  if (data.length === 0) {
+    return (
+      <Box
+        sx={{
+          minHeight: minRows ? resolvedHeight : undefined,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          py: 4,
+          textAlign: 'center',
+        }}
+      >
+        <Typography variant="body2" color="text.secondary">
+          Track a repository to see how recently it was active.
+        </Typography>
+      </Box>
+    )
+  }
 
   return (
     <Box component="figure" sx={{ m: 0 }}>
@@ -102,7 +128,7 @@ export function StalenessBarChart({
         aria-hidden="true"
         dataset={sorted}
         layout="horizontal"
-        height={height ?? sorted.length * ROW_HEIGHT + CHART_CHROME}
+        height={resolvedHeight}
         hideLegend
         skipAnimation={skipAnimation}
         grid={{ vertical: true }}

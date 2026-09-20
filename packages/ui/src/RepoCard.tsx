@@ -5,6 +5,7 @@ import CardContent from '@mui/material/CardContent'
 import Link from '@mui/material/Link'
 import Skeleton from '@mui/material/Skeleton'
 import Stack from '@mui/material/Stack'
+import { keyframes } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 import type { GithubError } from '@repo-radar/types'
 import { formatCompactNumber, formatRelativeDate, visuallyHidden } from '@repo-radar/util'
@@ -14,6 +15,38 @@ import { clampLines } from './clamp'
 import { ErrorState } from './ErrorState'
 import { freshness } from './freshness'
 import { StatChip } from './StatChip'
+
+const settle = keyframes`
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
+`
+
+/**
+ * The moment a skeleton is replaced by real stats — the thing this card
+ * exists to show — is otherwise instant: React swaps the DOM node, and a CSS
+ * `transition` cannot animate an element into its own mount. `ui` cannot
+ * reach `useReducedMotion` (it would mean importing redux, which the
+ * boundary rules forbid), so this reads `prefers-reduced-motion` directly
+ * rather than through the app's preference — the one motion check this
+ * layer can make on its own.
+ *
+ * `display: contents` on the wrapper keeps its children as direct
+ * participants in the parent flex row; the animation lives on each child
+ * instead, since a `display: contents` box never paints one of its own.
+ */
+const settleSx = {
+  display: 'contents',
+  '& > *': { animation: `${settle} 240ms ease-out both` },
+  '@media (prefers-reduced-motion: reduce)': {
+    '& > *': { animation: 'none' },
+  },
+} as const
+
+/** Same fade, for a single element that already renders its own box. */
+const settleSelfSx = {
+  animation: `${settle} 240ms ease-out both`,
+  '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
+} as const
 
 export interface RepoCardStats {
   stars: number
@@ -110,7 +143,7 @@ export function RepoCard({
                 <Skeleton variant="rounded" width={40} height={22} />
               </>
             ) : (
-              <>
+              <Box sx={settleSx}>
                 {stats?.language ? <StatChip icon="code" label={stats.language} /> : null}
                 <StatChip
                   icon="star"
@@ -126,7 +159,7 @@ export function RepoCard({
                       : 'GitHub counts open pull requests as issues, so this may include both.'
                   }
                 />
-              </>
+              </Box>
             )}
 
             <Box sx={{ flexGrow: 1 }} />
@@ -134,7 +167,7 @@ export function RepoCard({
             {loading ? (
               <Skeleton width={90} height={20} />
             ) : (
-              <Stack direction="row" spacing={1} alignItems="center">
+              <Stack direction="row" spacing={1} alignItems="center" sx={settleSelfSx}>
                 <Box
                   component="span"
                   aria-hidden="true"

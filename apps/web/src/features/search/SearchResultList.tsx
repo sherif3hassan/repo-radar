@@ -12,6 +12,8 @@ import { parseFullName, type Repo, type RepoRef } from '@repo-radar/types'
 import { clampLines, freshness, Icon, StatChip } from '@repo-radar/ui'
 import { formatCompactNumber, formatRelativeDate, visuallyHidden } from '@repo-radar/util'
 
+import { entranceSx } from '../../app/motion'
+import { useReducedMotion } from '../../app/preferences'
 import { useIsTracked, useTracking } from '../../app/tracking'
 
 function TrackButton({ repo }: { repo: Repo }) {
@@ -76,9 +78,11 @@ export interface SearchResultListProps {
  * several screens and the figures end up too far apart to compare.
  */
 export function SearchResultList({ repos }: SearchResultListProps) {
+  const reducedMotion = useReducedMotion()
+
   return (
     <List aria-label="Search results" sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-      {repos.map((repo) => (
+      {repos.map((repo, index) => (
         <ListItem
           key={repo.id}
           alignItems="flex-start"
@@ -88,6 +92,9 @@ export function SearchResultList({ repos }: SearchResultListProps) {
             borderColor: 'divider',
             borderRadius: 2,
             bgcolor: 'background.paper',
+            transition: (t) => t.transitions.create('border-color', { duration: 150 }),
+            '&:hover': { borderColor: 'primary.main' },
+            ...entranceSx(index, !reducedMotion),
           }}
         >
           <ListItemAvatar>

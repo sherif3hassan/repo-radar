@@ -1,0 +1,28 @@
+# Repo Radar
+
+> A dashboard to search GitHub repositories, track favourites, and monitor
+> their stars, open issues and last commit date. Client-only React SPA — no
+> backend, no server-side rendering. Unauthenticated by default (60
+> requests/hour to the GitHub REST API); a user can supply their own token,
+> which stays in their browser and is never sent anywhere else.
+
+Built with React 19, TypeScript, Redux Toolkit + RTK Query, MUI v7, zod, and
+Vite, as a pnpm + Turborepo monorepo split by architectural layer
+(`data-access`, `ui`, `plots`, `types`, `util`, composed in `apps/web`).
+
+## Docs
+
+- [README](https://github.com/sherif3hassan/repo-radar/blob/main/README.md): quick start, what it does, testing, deployment, assumptions and limitations
+- [ARCHITECTURE.md](https://github.com/sherif3hassan/repo-radar/blob/main/ARCHITECTURE.md): package graph, data flow, and the reasoning behind each boundary
+- [PLAN.md](https://github.com/sherif3hassan/repo-radar/blob/main/PLAN.md): the full design rationale behind every rule in CLAUDE.md
+
+## Notes for agents
+
+- This is a static SPA served from `apps/web/dist`; client-side routes
+  (`/`, `/search`, `/tracked`) are rewritten to `index.html`, so any URL under
+  this origin should be fetched from the root document rather than assumed to
+  exist as a static file.
+- All data comes from the public GitHub REST API at request time — there is no
+  seed data, sitemap, or server-rendered content to crawl.
+- Source is the most reliable reference for current behaviour; this file
+  exists to orient an agent, not to replace reading the code.

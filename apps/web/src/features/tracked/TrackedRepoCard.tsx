@@ -1,4 +1,6 @@
+import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
+import type { SxProps, Theme } from '@mui/material/styles'
 import Tooltip from '@mui/material/Tooltip'
 import { useGetRepoStatsQuery } from '@repo-radar/data-access'
 import { asGithubError, toFullName, type RepoRef } from '@repo-radar/types'
@@ -8,6 +10,8 @@ import { useTracking } from '../../app/tracking'
 
 export interface TrackedRepoProps {
   repo: RepoRef
+  /** The entrance animation, if any — `RepoCard` itself takes no `sx`. */
+  sx?: SxProps<Theme>
 }
 
 /**
@@ -17,7 +21,7 @@ export interface TrackedRepoProps {
  * per-repository by construction — there is no shared loading flag anywhere in
  * this app.
  */
-export function TrackedRepo({ repo }: TrackedRepoProps) {
+export function TrackedRepo({ repo, sx }: TrackedRepoProps) {
   const { data, isFetching, isError, error, refetch } = useGetRepoStatsQuery(repo)
   const { untrack } = useTracking()
 
@@ -68,5 +72,9 @@ export function TrackedRepo({ repo }: TrackedRepoProps) {
     </>
   )
 
-  return <RepoCard {...shared} actions={actions} />
+  return (
+    <Box sx={sx}>
+      <RepoCard {...shared} actions={actions} />
+    </Box>
+  )
 }

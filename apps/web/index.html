@@ -17,10 +17,20 @@
     <!-- Preconnect saves the DNS + TLS round trip before the CSS is even parsed. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Loaded as `preload` and swapped to `stylesheet` on load so the font CSS
+         request never blocks first paint; `noscript` covers JS-disabled clients. -->
     <link
-      rel="stylesheet"
+      rel="preload"
+      as="style"
       href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      />
+    </noscript>
 
     <!-- The API is hit on first keystroke; warming the connection early. -->
     <link rel="preconnect" href="https://api.github.com" crossorigin />

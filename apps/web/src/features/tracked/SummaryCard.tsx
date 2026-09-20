@@ -37,8 +37,6 @@ export function SummaryCard({ metrics }: { metrics: TrackedMetrics }) {
   const theme = useTheme()
   const viz = useVizPalette()
 
-  if (!metrics.hasData) return null
-
   const { totals } = metrics
 
   return (
@@ -72,18 +70,19 @@ export function SummaryCard({ metrics }: { metrics: TrackedMetrics }) {
         </Box>
       </Box>
 
-      {metrics.languages.length > 0 ? (
-        <Card>
-          <CardContent>
-            <ShareBar
-              title="Languages"
-              data={metrics.languages}
-              colors={viz.categorical}
-              monoFontFamily={theme.typography.fontFamilyMono}
-            />
-          </CardContent>
-        </Card>
-      ) : null}
+      {/* Reserves the card's footprint before the first repository resolves and
+          populates it, rather than popping the whole card in and shifting the
+          charts below it. */}
+      <Card sx={{ minHeight: 116 }}>
+        <CardContent>
+          <ShareBar
+            title="Languages"
+            data={metrics.languages}
+            colors={viz.categorical}
+            monoFontFamily={theme.typography.fontFamilyMono}
+          />
+        </CardContent>
+      </Card>
     </Stack>
   )
 }

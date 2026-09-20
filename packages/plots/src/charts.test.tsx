@@ -103,6 +103,12 @@ describe('MagnitudeBarChart', () => {
     expect(screen.queryByRole('table')).toBeNull()
   })
 
+  it('reserves height for the repositories still resolving, so later rows do not shift the page', () => {
+    const { container } = renderChart(<MagnitudeBarChart data={[]} minRows={3} skipAnimation />)
+
+    expect(getComputedStyle(container.firstChild as HTMLElement).minHeight).toBe('174px')
+  })
+
   /**
    * The short label exists because 168px of axis does not fit on a phone. The
    * table has no such constraint, and `react` on its own is ambiguous when two
@@ -181,10 +187,20 @@ describe('StalenessBarChart', () => {
     expect(row?.[1]).toBe('1 day')
   })
 
-  it('renders nothing when there is no data', () => {
-    const { container } = renderChart(<StalenessBarChart data={[]} />)
+  it('invites the user to track something rather than drawing an empty chart', () => {
+    renderChart(<StalenessBarChart data={[]} />)
 
-    expect(container.querySelector('figure')).toBeNull()
+    expect(
+      screen.getByText('Track a repository to see how recently it was active.'),
+    ).toBeTruthy()
+    expect(screen.queryByRole('table')).toBeNull()
+  })
+
+  it('reserves height for the repositories still resolving', () => {
+    const { container } = renderChart(<StalenessBarChart data={[]} minRows={4} />)
+
+    const placeholder = container.firstChild as HTMLElement
+    expect(getComputedStyle(placeholder).minHeight).toBe('208px')
   })
 
   it('keeps full repository names in the table on a narrow screen', () => {

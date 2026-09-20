@@ -9,6 +9,7 @@ import { EmptyState, Icon } from '@repo-radar/ui'
 import { visuallyHidden } from '@repo-radar/util'
 import { Link } from 'react-router'
 
+import { entranceSx } from '../../app/motion'
 import { useReducedMotion } from '../../app/preferences'
 import { useTracking } from '../../app/tracking'
 import { useVizPalette } from '../../app/viz'
@@ -100,44 +101,44 @@ export function TrackedPage() {
 
       <SummaryCard metrics={metrics} />
 
-      {metrics.hasData ? (
-        <>
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: '1.3fr 1fr' },
-              gap: 2,
-            }}
-          >
-            <ChartPanel>
-              <MagnitudeBarChart
-                title="Stars per tracked repository"
-                data={metrics.stars}
-                color={viz.series}
-                skipAnimation={reducedMotion}
-                monoFontFamily={monoFontFamily}
-              />
-            </ChartPanel>
-            <ChartPanel>
-              <StalenessBarChart
-                data={metrics.staleness}
-                skipAnimation={reducedMotion}
-                monoFontFamily={monoFontFamily}
-              />
-            </ChartPanel>
-          </Box>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: '1.3fr 1fr' },
+          gap: 2,
+        }}
+      >
+        <ChartPanel>
+          <MagnitudeBarChart
+            title="Stars per tracked repository"
+            data={metrics.stars}
+            minRows={refs.length}
+            color={viz.series}
+            skipAnimation={reducedMotion}
+            monoFontFamily={monoFontFamily}
+          />
+        </ChartPanel>
+        <ChartPanel>
+          <StalenessBarChart
+            data={metrics.staleness}
+            minRows={refs.length}
+            skipAnimation={reducedMotion}
+            monoFontFamily={monoFontFamily}
+          />
+        </ChartPanel>
+      </Box>
 
-          <ChartPanel>
-            <MagnitudeBarChart
-              title="Open issues per tracked repository"
-              data={metrics.issues}
-              color={viz.seriesAlt}
-              skipAnimation={reducedMotion}
-              monoFontFamily={monoFontFamily}
-            />
-          </ChartPanel>
-        </>
-      ) : null}
+      <ChartPanel>
+        <MagnitudeBarChart
+          title="Open issues per tracked repository"
+          data={metrics.issues}
+          emptyMessage="Track a repository to see how its open issues compare."
+          minRows={refs.length}
+          color={viz.seriesAlt}
+          skipAnimation={reducedMotion}
+          monoFontFamily={monoFontFamily}
+        />
+      </ChartPanel>
 
       <Stack spacing={1.5}>
         <Typography variant="h2" component="h2">
@@ -150,8 +151,12 @@ export function TrackedPage() {
             gap: 2,
           }}
         >
-          {refs.map((ref) => (
-            <TrackedRepo key={toFullName(ref)} repo={ref} />
+          {refs.map((ref, index) => (
+            <TrackedRepo
+              key={toFullName(ref)}
+              repo={ref}
+              sx={entranceSx(index, !reducedMotion)}
+            />
           ))}
         </Box>
       </Stack>

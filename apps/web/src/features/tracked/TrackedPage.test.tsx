@@ -220,13 +220,13 @@ describe('TrackedPage', () => {
     ).toBeInTheDocument()
   })
 
-  it('does not show the chart before any repository has resolved', () => {
+  it('reserves the chart’s place before any repository has resolved, rather than popping it in', () => {
     renderWithProviders(<TrackedPage />, { store: storeWith(['facebook/react']) })
 
     expect(
       screen.queryByRole('table', { name: 'Stars per tracked repository' }),
     ).not.toBeInTheDocument()
-    expect(screen.queryByText(/see how its stars compare/)).not.toBeInTheDocument()
+    expect(screen.getByText(/see how its stars compare/)).toBeInTheDocument()
   })
 
   it('untracks a repository', async () => {
