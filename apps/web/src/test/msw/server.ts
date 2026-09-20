@@ -26,7 +26,10 @@ export const handlers = [
 
   http.get('https://api.github.com/repos/:owner/:name', ({ params }) =>
     HttpResponse.json(
-      rawRepo({ name: params.name, full_name: `${String(params.owner)}/${String(params.name)}` }),
+      rawRepo({
+        name: params.name,
+        full_name: `${String(params.owner)}/${String(params.name)}`,
+      }),
       { headers: OK_RATE_LIMIT },
     ),
   ),
@@ -35,8 +38,6 @@ export const handlers = [
     HttpResponse.json(rawCommits(), { headers: OK_RATE_LIMIT }),
   ),
 
-  // `per_page=1` plus a Link header is how the open PR count is read without
-  // paging through every pull request.
   http.get('https://api.github.com/repos/:owner/:name/pulls', ({ params }) =>
     HttpResponse.json([{ id: 1 }], {
       headers: {

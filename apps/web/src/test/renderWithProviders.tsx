@@ -7,7 +7,6 @@ import { Providers } from '../app/Providers'
 import { makeStore, type AppStore } from '../app/store'
 
 export interface RenderWithProvidersOptions extends Omit<RenderOptions, 'wrapper'> {
-  /** Initial URL — drives `?q=` so search state can be set up from the address. */
   route?: string
   store?: AppStore
 }

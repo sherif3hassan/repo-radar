@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { App } from './App'
@@ -9,18 +9,38 @@ import { renderWithProviders } from './test/renderWithProviders'
  * is easy to break and invisible until someone uses a screen reader.
  */
 describe('App shell', () => {
+  const primaryNav = () => within(screen.getByRole('navigation', { name: 'Primary' }))
+
   it('renders the brand and navigation', () => {
     renderWithProviders(<App />)
 
     expect(screen.getByText('Repo Radar')).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: 'Search' })).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: 'Tracked' })).toBeInTheDocument()
+    expect(primaryNav().getByRole('link', { name: 'Search' })).toBeInTheDocument()
+    expect(primaryNav().getByRole('link', { name: 'Tracked' })).toBeInTheDocument()
   })
 
   it('redirects the index route to search', () => {
     renderWithProviders(<App />)
 
-    expect(screen.getByRole('tab', { name: 'Search' })).toHaveAttribute('aria-selected', 'true')
+    expect(primaryNav().getByRole('link', { name: 'Search' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    expect(primaryNav().getByRole('link', { name: 'Tracked' })).not.toHaveAttribute(
+      'aria-current',
+    )
+  })
+
+  /**
+   * Navigation between pages is a landmark of links, not a tablist: tabs switch
+   * panels within one page, so announcing these as tabs would mislead a screen
+   * reader user about what activating them does.
+   */
+  it('exposes navigation as a labelled landmark, not a tablist', () => {
+    renderWithProviders(<App />)
+
+    expect(screen.getAllByRole('navigation')).toHaveLength(1)
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
   })
 
   /**
@@ -47,11 +67,5 @@ describe('App shell', () => {
     renderWithProviders(<App />)
 
     expect(screen.getByRole('main')).toHaveAttribute('id', 'main')
-  })
-
-  it('has exactly one tablist', () => {
-    renderWithProviders(<App />)
-
-    expect(screen.getAllByRole('tablist')).toHaveLength(1)
   })
 })

@@ -27,8 +27,6 @@ describe('SettingsDialog', () => {
       expect(store.getState().settings.token).toBe('github_pat_abc')
     })
 
-    // Whitespace is not a token; it must not put the app into a state where it
-    // believes it is authenticated.
     it('treats a blank token as no token', async () => {
       const store = makeStore()
       const { user } = await open(store)
@@ -36,6 +34,28 @@ describe('SettingsDialog', () => {
       await user.type(screen.getByLabelText('Personal access token'), '   ')
       await user.click(screen.getByRole('button', { name: 'Save' }))
 
+      expect(store.getState().settings.token).toBeNull()
+    })
+
+    /**
+     * `useState` inside the dialog only initialises once, so without a reset
+     * an abandoned draft would survive a close and reappear on the next
+     * open — and a later Save would overwrite whatever the store actually
+     * holds with that stale text.
+     */
+    it('discards an abandoned draft when closed and reopened', async () => {
+      const store = makeStore()
+      const { user } = await open(store)
+
+      await user.type(
+        screen.getByLabelText('Personal access token'),
+        'github_pat_abandoned',
+      )
+      await user.click(screen.getByRole('button', { name: 'Close' }))
+
+      await user.click(screen.getByRole('button', { name: 'Settings' }))
+
+      expect(screen.getByLabelText('Personal access token')).toHaveValue('')
       expect(store.getState().settings.token).toBeNull()
     })
 
@@ -65,7 +85,9 @@ describe('SettingsDialog', () => {
     })
 
     it('reflects preferences already stored', async () => {
-      await open(makeStore({ preferences: { ...defaultPreferences, textScale: 'larger' } }))
+      await open(
+        makeStore({ preferences: { ...defaultPreferences, textScale: 'larger' } }),
+      )
 
       expect(group('Text size').getByRole('radio', { name: 'Larger' })).toBeChecked()
     })
@@ -76,11 +98,17 @@ describe('SettingsDialog', () => {
      */
     it('scales rendered text through the theme', async () => {
       const normal = await open()
-      const before = getComputedStyle(screen.getByRole('button', { name: 'Save' })).fontSize
+      const before = getComputedStyle(
+        screen.getByRole('button', { name: 'Save' }),
+      ).fontSize
       normal.unmount()
 
-      await open(makeStore({ preferences: { ...defaultPreferences, textScale: 'larger' } }))
-      const after = getComputedStyle(screen.getByRole('button', { name: 'Save' })).fontSize
+      await open(
+        makeStore({ preferences: { ...defaultPreferences, textScale: 'larger' } }),
+      )
+      const after = getComputedStyle(
+        screen.getByRole('button', { name: 'Save' }),
+      ).fontSize
 
       expect(Number.parseFloat(after)).toBeGreaterThan(Number.parseFloat(before))
     })

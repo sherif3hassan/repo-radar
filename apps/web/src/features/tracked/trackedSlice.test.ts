@@ -58,14 +58,11 @@ describe('selectors', () => {
     expect(selectTrackedRefs(state)).toEqual([react, vue])
   })
 
-  // A malformed identifier — from hand-edited storage — must not crash the list.
   it('drops identifiers that are not owner/name', () => {
     const state = { tracked: { ids: ['facebook/react', 'nonsense', 'a/b/c', ''] } }
     expect(selectTrackedRefs(state)).toEqual([react])
   })
 
-  // Every TrackedRepoCard depends on this array; a new identity each call
-  // would remount the whole list on unrelated state changes.
   it('returns a stable reference for unchanged ids', () => {
     const state = { tracked: { ids: ['facebook/react'] } }
     expect(selectTrackedRefs(state)).toBe(selectTrackedRefs(state))
