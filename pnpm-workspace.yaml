@@ -1,0 +1,12 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+# Native resolver binary used by eslint-plugin-import-x. Import resolution
+# (and therefore import-x/no-cycle) does not work without its postinstall.
+allowBuilds:
+  # Storybook's bundler. Its postinstall fetches the platform binary.
+  esbuild: true
+  # msw's postinstall writes its service-worker script. Node-environment tests
+  # do not need it, but approving keeps browser-level mocking available.
+  msw: true
+  unrs-resolver: true

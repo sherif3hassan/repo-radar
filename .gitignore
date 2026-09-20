@@ -1,0 +1,26 @@
+node_modules/
+dist/
+build/
+coverage/
+storybook-static/
+
+.turbo/
+*.tsbuildinfo
+.vercel/
+
+# Local GitHub token for development only. A token must never reach the bundle
+# or the repository — see CLAUDE.md.
+.env
+.env.local
+.env.*.local
+
+# Local working notes, deliberately not pushed.
+COMMITS.md
+STATUS.md
+TODO.md
+
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+pnpm-debug.log*
