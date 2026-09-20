@@ -1,0 +1,33 @@
+{
+  "name": "@repo-radar/ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@repo-radar/types": "workspace:*",
+    "@repo-radar/util": "workspace:*"
+  },
+  "peerDependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/material": "^7.0.0",
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/material": "^7.0.0",
+    "@repo-radar/config": "workspace:*",
+    "@types/react": "^19.3.0",
+    "react": "^19.0.0",
+    "vitest": "^5.0.1"
+  }
+}
