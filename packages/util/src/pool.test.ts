@@ -30,7 +30,6 @@ describe('pool', () => {
       return index
     })
 
-    // Finish out of order.
     gates[2]!.resolve()
     gates[0]!.resolve()
     gates[1]!.resolve()
@@ -107,5 +106,59 @@ describe('pool', () => {
         return n
       }),
     ).rejects.toThrow('boom')
+  })
+
+  describe('when a task fails', () => {
+    /**
+     * Rejecting while other workers carry on left work running detached, with
+     * nobody left to observe its result or its errors.
+     */
+    it('stops starting new tasks', async () => {
+      const gates = Array.from({ length: 6 }, () => deferred())
+      const started: number[] = []
+
+      const running = pool([0, 1, 2, 3, 4, 5], 2, async (index) => {
+        started.push(index)
+        if (index === 0) throw new Error('boom')
+        await gates[index]?.promise
+      })
+      const outcome = running.catch((error: unknown) => error)
+
+      await flush()
+      gates[1]?.resolve()
+      await outcome
+      await flush()
+
+      expect(started).toEqual([0, 1])
+    })
+
+    it('waits for in-flight tasks before rejecting', async () => {
+      const inFlight = deferred()
+      let settled = false
+
+      const running = pool([0, 1], 2, async (index) => {
+        if (index === 0) throw new Error('boom')
+        await inFlight.promise
+      }).catch((error: unknown) => {
+        settled = true
+        return error
+      })
+
+      await flush()
+      expect(settled).toBe(false)
+
+      inFlight.resolve()
+      expect(await running).toEqual(new Error('boom'))
+      expect(settled).toBe(true)
+    })
+
+    it('rejects with the first failure, not a later one', async () => {
+      const running = pool([0, 1], 2, async (index) => {
+        await flush()
+        throw new Error(`failure ${index}`)
+      })
+
+      await expect(running).rejects.toThrow('failure 0')
+    })
   })
 })

@@ -31,8 +31,6 @@ describe('formatRelativeDate', () => {
     expect(formatRelativeDate('2026-09-20T12:00:00Z', now)).toBe('tomorrow')
   })
 
-  // lastCommitAt is legitimately null when GitHub cannot attribute the commit,
-  // so absence must not throw.
   it.each([null, undefined, '', 'not-a-date'])('returns null for %p', (input) => {
     expect(formatRelativeDate(input, now)).toBeNull()
   })

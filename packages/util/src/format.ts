@@ -17,7 +17,6 @@ const DIVISIONS = [
   { amount: Number.POSITIVE_INFINITY, unit: 'year' },
 ] as const satisfies readonly { amount: number; unit: Intl.RelativeTimeFormatUnit }[]
 
-
 export const formatRelativeDate = (
   iso: string | null | undefined,
   now: Date = new Date(),
