@@ -1,5 +1,7 @@
 export type GithubError =
-  | { kind: 'rate-limit'; resetAt: string; authenticated: boolean }
+  /** `secondary` is GitHub's abuse throttle, not the hourly quota. */
+  | { kind: 'rate-limit'; resetAt: string; authenticated: boolean; secondary?: boolean }
+  | { kind: 'unauthorized' }
   | { kind: 'not-found' }
   | { kind: 'network' }
   | { kind: 'invalid-query'; message: string }
@@ -12,6 +14,7 @@ export const isRateLimit = (
 
 const KINDS = new Set([
   'rate-limit',
+  'unauthorized',
   'not-found',
   'network',
   'invalid-query',
@@ -24,7 +27,6 @@ export const isGithubError = (error: unknown): error is GithubError =>
   error !== null &&
   'kind' in error &&
   KINDS.has((error as { kind: unknown }).kind as string)
-
 
 export const asGithubError = (error: unknown): GithubError =>
   isGithubError(error) ? error : { kind: 'unknown' }

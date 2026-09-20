@@ -12,7 +12,6 @@ export interface RepoRef {
 /** The canonical string form, used as cache key and localStorage entry. */
 export const toFullName = (ref: RepoRef): string => `${ref.owner}/${ref.name}`
 
-/** Inverse of {@link toFullName}. Returns null for anything not `owner/name`. */
 export const parseFullName = (value: string): RepoRef | null => {
   const parts = value.split('/')
   if (parts.length !== 2) return null

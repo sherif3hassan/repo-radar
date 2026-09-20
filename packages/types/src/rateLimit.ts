@@ -10,4 +10,10 @@ export interface RateLimit {
   limit: number
   remaining: number
   resetAt: string
+  /**
+   * Which budget this is. GitHub keeps `core` (60/hour) and `search`
+   * (10/minute) separately, so a single snapshot mixing them would flip between
+   * "9/10" and "57/60" depending on which request answered last.
+   */
+  resource: string
 }
