@@ -27,11 +27,15 @@ export default tseslint.config(
     },
     plugins: { 'import-x': importX },
     settings: {
-      'import-x/resolver-next': [createTypeScriptImportResolver({ alwaysTryTypes: true })],
+      'import-x/resolver-next': [
+        createTypeScriptImportResolver({ alwaysTryTypes: true }),
+      ],
     },
     rules: {
       'import-x/no-cycle': 'error',
       'import-x/no-self-import': 'error',
+      'import-x/no-relative-packages': 'error',
+      'no-empty': ['error', { allowEmptyCatch: true }],
 
       '@typescript-eslint/consistent-type-imports': [
         'error',

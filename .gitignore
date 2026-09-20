@@ -18,6 +18,9 @@ storybook-static/
 COMMITS.md
 STATUS.md
 TODO.md
+REVIEW-FIXES.md
+review.md
+.claude/
 
 .DS_Store
 Thumbs.db

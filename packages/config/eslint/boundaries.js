@@ -3,10 +3,23 @@ import { fileURLToPath } from 'node:url'
 
 import boundaries from 'eslint-plugin-boundaries'
 
-
+/**
+ * Element patterns are matched against paths relative to the working
+ * directory by default, so linting inside a package would classify nothing and
+ * exit 0 while enforcing nothing. Pinning the root to this file's own location
+ * makes the rules behave the same from anywhere.
+ */
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..')
 
-
+/**
+ * Folder patterns, never ending in `/**`: that matches files rather than the
+ * element folder, after which the plugin classifies nothing and reports
+ * nothing.
+ *
+ * `plots` shares the `ui` type, so `ui` importing `plots` is allowed by the
+ * matrix. `NO_UI_TO_PLOTS` closes that separately, because it is the seam that
+ * keeps the charting library out of the eager bundle.
+ */
 const ELEMENT_TYPES = [
   { type: 'app', pattern: 'apps/web' },
   { type: 'app', pattern: 'apps/storybook' },
@@ -22,6 +35,11 @@ const may = (from, ...to) => ({
   allow: { to: { element: { types: { anyOf: to } } } },
 })
 
+/**
+ * The secondary boundary: the primary one is each package's own dependency
+ * list. `default: 'disallow'` means a package added later is denied until
+ * someone writes a policy for it.
+ */
 const POLICIES = [
   may('app', 'data-access', 'ui', 'types', 'util'),
   may('data-access', 'types', 'util'),
@@ -41,17 +59,31 @@ const NO_REDUX = {
   message: 'Presentational packages take data as props. Connect in apps/web.',
 }
 
+const NO_UI_TO_PLOTS = {
+  group: ['@repo-radar/plots', '@repo-radar/plots/*'],
+  message:
+    'ui is in the eager bundle and plots is the lazy chart chunk. Compose them in apps/web.',
+}
+
+/**
+ * Bans a feature importing its siblings by any spelling.
+ *
+ * A glob on `features/<other>` only matches the absolute form. The relative
+ * spellings an editor autocompletes (`../settings/x`, `../../settings/x`)
+ * contain no `features` segment, so each depth is listed explicitly.
+ */
 const crossFeature = (self) => ({
-  group: FEATURES.filter((other) => other !== self).map(
-    (other) => `**/features/${other}/**`,
-  ),
+  group: FEATURES.filter((other) => other !== self).flatMap((other) => [
+    `**/features/${other}/**`,
+    `../${other}`,
+    `../${other}/**`,
+    `../../${other}`,
+    `../../${other}/**`,
+  ]),
   message: 'Features must not import each other. Share via app/ or promote to a package.',
 })
 
-const restrict = (...patterns) => [
-  'error',
-  { patterns: [NO_DEEP_IMPORTS, ...patterns] },
-]
+const restrict = (...patterns) => ['error', { patterns: [NO_DEEP_IMPORTS, ...patterns] }]
 
 export default [
   {
@@ -64,15 +96,18 @@ export default [
       'import/resolver': { typescript: true },
     },
     rules: {
-      // default: 'disallow' means a package added later is denied until someone
-      // writes a policy for it, rather than silently permitted.
       'boundaries/dependencies': ['error', { default: 'disallow', policies: POLICIES }],
       'no-restricted-imports': restrict(),
     },
   },
 
   {
-    files: ['packages/ui/**/*.{ts,tsx}', 'packages/plots/**/*.{ts,tsx}'],
+    files: ['packages/ui/**/*.{ts,tsx}'],
+    rules: { 'no-restricted-imports': restrict(NO_REDUX, NO_UI_TO_PLOTS) },
+  },
+
+  {
+    files: ['packages/plots/**/*.{ts,tsx}'],
     rules: { 'no-restricted-imports': restrict(NO_REDUX) },
   },
 

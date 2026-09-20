@@ -1,6 +1,6 @@
 packages:
-  - "apps/*"
-  - "packages/*"
+  - 'apps/*'
+  - 'packages/*'
 # Native resolver binary used by eslint-plugin-import-x. Import resolution
 # (and therefore import-x/no-cycle) does not work without its postinstall.
 allowBuilds:
