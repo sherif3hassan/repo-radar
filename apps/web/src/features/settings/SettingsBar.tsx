@@ -11,17 +11,22 @@ import { RateLimitIndicator } from './RateLimitIndicator'
 import { SettingsDialog } from './SettingsDialog'
 import { ThemeToggle } from './ThemeToggle'
 
+/**
+ * The dialog is keyed on `open` so it remounts per opening. Its draft state only
+ * initialises once, because this component always renders it, so an abandoned
+ * token would otherwise survive to the next open and overwrite a saved one.
+ *
+ * The visible text is the accessible name. An `aria-label` would override it and
+ * break WCAG 2.5.3 (Label in Name): a voice-control user saying "Settings" must
+ * activate the control they can see. Below `sm` it collapses to an icon, which
+ * carries its own label.
+ */
 export function SettingsBar() {
   const theme = useTheme()
-  // At 360px the labelled button plus the chip plus the toggle will not fit
-  // beside the wordmark, so the token control collapses to its icon.
   const compact = useMediaQuery(theme.breakpoints.down('sm'))
 
   const [open, setOpen] = useState(false)
 
-  // The visible text IS the accessible name. An aria-label here would override
-  // it and break WCAG 2.5.3 (Label in Name): a voice-control user saying
-  // "Settings" must activate the control they can see.
   const text = 'Settings'
 
   return (
@@ -47,7 +52,7 @@ export function SettingsBar() {
 
       <ThemeToggle />
 
-      <SettingsDialog open={open} onClose={() => setOpen(false)} />
+      <SettingsDialog key={String(open)} open={open} onClose={() => setOpen(false)} />
     </Stack>
   )
 }

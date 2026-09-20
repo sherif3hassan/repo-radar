@@ -4,7 +4,6 @@ import { getRateLimit, subscribeToRateLimit } from '@repo-radar/data-access'
 import { formatRelativeDate } from '@repo-radar/util'
 import { useSyncExternalStore } from 'react'
 
-/** Below this share of the budget, the chip starts warning. */
 const LOW_WATER = 0.25
 
 /**

@@ -43,16 +43,32 @@ interface ChoiceProps<T extends string> {
   onChange: (value: T) => void
 }
 
-function Choice<T extends string>({ label, hint, value, options, onChange }: ChoiceProps<T>) {
-  // MUI does not wire FormLabel to RadioGroup, so without this the group is
-  // announced as an unnamed set of radios and the option labels ("Default")
-  // have to carry all the meaning on their own.
+/**
+ * Radio semantics with a segmented appearance. A slider would look tidier but
+ * is worse for three discrete values: it is harder to land on one, and a screen
+ * reader announces a number where radios announce "Large, 2 of 3".
+ *
+ * The radio is visually hidden, never `display: none`, which would remove it
+ * from the accessibility tree and leave the control keyboard-dead while looking
+ * fine. Its focus ring is drawn on the label instead. MUI does not wire
+ * `FormLabel` to `RadioGroup`, so the group is named explicitly.
+ */
+function Choice<T extends string>({
+  label,
+  hint,
+  value,
+  options,
+  onChange,
+}: ChoiceProps<T>) {
   const labelId = useId()
   const hintId = useId()
 
   return (
     <FormControl>
-      <FormLabel id={labelId} sx={{ fontSize: 14, fontWeight: 500, color: 'text.primary' }}>
+      <FormLabel
+        id={labelId}
+        sx={{ fontSize: 14, fontWeight: 500, color: 'text.primary' }}
+      >
         {label}
       </FormLabel>
       {hint ? (
@@ -60,15 +76,6 @@ function Choice<T extends string>({ label, hint, value, options, onChange }: Cho
           {hint}
         </Typography>
       ) : null}
-      {/*
-        Radio semantics, segmented appearance.
-
-        A slider would look tidier but is worse here: with three discrete
-        values it is harder to land on one, and a screen reader announces a
-        number rather than "Large". Radios announce "Large, 2 of 3" and are
-        keyboard-navigable with arrows. Appearance and semantics are separable,
-        so the styling changes and the semantics do not.
-      */}
       <RadioGroup
         row
         value={value}
@@ -85,12 +92,6 @@ function Choice<T extends string>({ label, hint, value, options, onChange }: Cho
           width: 'fit-content',
         }}
       >
-        {/*
-          The radio is visually hidden, NOT `display: none`. Hiding it outright
-          removes the input from the accessibility tree — unfocusable and
-          unannounced — which would leave the control keyboard-dead while still
-          looking fine.
-        */}
         {options.map((option, index) => (
           <FormControlLabel
             key={option.value}
@@ -108,10 +109,12 @@ function Choice<T extends string>({ label, hint, value, options, onChange }: Cho
               cursor: 'pointer',
               fontSize: 14,
               ...(value === option.value
-                ? { bgcolor: 'primary.main', color: 'primary.contrastText', fontWeight: 600 }
+                ? {
+                    bgcolor: 'primary.main',
+                    color: 'primary.contrastText',
+                    fontWeight: 600,
+                  }
                 : { color: 'text.secondary' }),
-              // The radio is visually hidden, so the focus ring has to come
-              // from the label it controls.
               '&:has(:focus-visible)': {
                 outline: 2,
                 outlineColor: 'primary.main',
@@ -125,6 +128,11 @@ function Choice<T extends string>({ label, hint, value, options, onChange }: Cho
   )
 }
 
+/**
+ * The token field takes focus on open. Otherwise focus stays on the trigger
+ * while MUI marks the page behind the dialog `aria-hidden`, which hides a
+ * focused element from assistive technology.
+ */
 export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
   const dispatch = useAppDispatch()
   const savedToken = useAppSelector((state) => state.settings.token)
@@ -148,20 +156,19 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
               GitHub access token
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Unauthenticated requests are capped at 60 per hour. A token raises that to 5,000. A
-              token with <strong>no scopes selected</strong> is enough — this app only reads public
-              data.{' '}
-              <Link href="https://github.com/settings/tokens?type=beta" target="_blank" rel="noreferrer">
+              Unauthenticated requests are capped at 60 per hour. A token raises that to
+              5,000. A token with <strong>no scopes selected</strong> is enough — this app
+              only reads public data.{' '}
+              <Link
+                href="https://github.com/settings/tokens?type=beta"
+                target="_blank"
+                rel="noreferrer"
+              >
                 Create one on GitHub
               </Link>
               .
             </Typography>
 
-            {/*
-              Without something inside taking focus, it stays on the trigger
-              button while MUI marks the page behind aria-hidden — which hides
-              a focused element from assistive technology.
-            */}
             <TextField
               autoFocus
               fullWidth
@@ -173,8 +180,9 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
             />
 
             <Alert severity="info" variant="outlined">
-              Stored in this browser&apos;s local storage and sent only to api.github.com. Any script
-              running on this origin could read it, so clear it on a shared machine.
+              Stored in this browser&apos;s local storage and sent only to api.github.com.
+              Any script running on this origin could read it, so clear it on a shared
+              machine.
             </Alert>
           </Stack>
 

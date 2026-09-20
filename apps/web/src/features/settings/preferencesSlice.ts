@@ -19,7 +19,6 @@ export const defaultPreferences: PreferencesState = {
   font: 'default',
 }
 
-/** Multipliers, not pixel sizes — everything downstream is in rem. */
 export const TEXT_SCALES: Record<TextScale, number> = {
   normal: 1,
   large: 1.125,
