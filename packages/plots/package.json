@@ -9,12 +9,14 @@
   "scripts": {
     "lint": "eslint .",
     "typecheck": "tsc",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run"
   },
   "dependencies": {
     "@repo-radar/util": "workspace:*"
   },
   "peerDependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
     "@mui/material": "^7.0.0",
     "@mui/x-charts": "^9.0.0",
     "react": "^19.0.0"
@@ -25,7 +27,10 @@
     "@mui/material": "^7.0.0",
     "@mui/x-charts": "^9.0.0",
     "@repo-radar/config": "workspace:*",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
     "@types/react": "^19.3.0",
+    "jsdom": "^30.1.0",
     "react": "^19.0.0",
     "vitest": "^5.0.1"
   }

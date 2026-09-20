@@ -6,7 +6,8 @@ import { BarChart } from '@mui/x-charts/BarChart'
 import { visuallyHidden } from '@repo-radar/util'
 import { useMemo } from 'react'
 
-import type { BarDatum } from './MagnitudeBarChart'
+import type { BarDatum } from './datum'
+import { useChartColors } from './useChartColors'
 
 export interface CategoryBarChartProps {
   data: readonly BarDatum[]
@@ -21,7 +22,6 @@ const ROW_HEIGHT = 34
 const CHART_CHROME = 72
 const LABEL_WIDTH = { wide: 140, narrow: 88 } as const
 
-
 export function CategoryBarChart({
   data,
   title = 'By category',
@@ -31,6 +31,7 @@ export function CategoryBarChart({
   skipAnimation = false,
 }: CategoryBarChartProps) {
   const theme = useTheme()
+  const chart = useChartColors()
   const narrow = useMediaQuery(theme.breakpoints.down('sm'))
   const rows = useMemo(() => {
     const ranked = [...data].sort((a, b) => b.value - a.value)
@@ -45,11 +46,15 @@ export function CategoryBarChart({
   if (data.length === 0) return null
 
   const colorFor = (index: number) =>
-    index < maxSlots ? (colors[index] ?? theme.palette.text.disabled) : theme.palette.text.disabled
+    index < maxSlots ? (colors[index] ?? chart.disabled) : chart.disabled
 
   return (
     <Box component="figure" sx={{ m: 0 }}>
-      <Typography variant="subtitle2" component="figcaption" sx={{ mb: 1, fontWeight: 600 }}>
+      <Typography
+        variant="subtitle2"
+        component="figcaption"
+        sx={{ mb: 1, fontWeight: 600 }}
+      >
         {title}
       </Typography>
 
@@ -87,14 +92,16 @@ export function CategoryBarChart({
             dataKey: 'label',
             width: narrow ? LABEL_WIDTH.narrow : LABEL_WIDTH.wide,
             categoryGapRatio: 0.35,
-            tickLabelStyle: { fill: theme.palette.text.secondary, fontSize: narrow ? 11 : 12 },
+            tickLabelStyle: {
+              fill: chart.label,
+              fontSize: narrow ? 11 : 12,
+            },
           },
         ]}
         xAxis={[
           {
-            // Counts are whole repositories; fractional ticks would be nonsense.
             tickMinStep: 1,
-            tickLabelStyle: { fill: theme.palette.text.secondary, fontSize: 11 },
+            tickLabelStyle: { fill: chart.label, fontSize: 11 },
           },
         ]}
         series={[
@@ -102,12 +109,16 @@ export function CategoryBarChart({
             dataKey: 'value',
             label: 'Repositories',
             valueFormatter: (value) =>
-              value === null ? '—' : `${value} ${value === 1 ? 'repository' : 'repositories'}`,
+              value === null
+                ? '—'
+                : `${value} ${value === 1 ? 'repository' : 'repositories'}`,
           },
         ]}
         sx={{
-          '& .MuiChartsAxis-line, & .MuiChartsAxis-tick': { stroke: theme.palette.divider },
-          '& .MuiChartsGrid-line': { stroke: theme.palette.divider },
+          '& .MuiChartsAxis-line, & .MuiChartsAxis-tick': {
+            stroke: chart.line,
+          },
+          '& .MuiChartsGrid-line': { stroke: chart.line },
           ...Object.fromEntries(
             rows.map((_, index) => [
               `& .MuiBarElement-root:nth-of-type(${index + 1})`,

@@ -6,18 +6,8 @@ import { BarChart } from '@mui/x-charts/BarChart'
 import { formatCompactNumber, visuallyHidden } from '@repo-radar/util'
 import { useMemo } from 'react'
 
-/**
- * Deliberately generic. This package never imports the domain model, so the
- * chart takes `{ label, value }` and `apps/web` does the mapping — which is
- * what keeps the charting library replaceable behind one prop shape.
- */
-// A `type` rather than an `interface` on purpose: only type aliases get the
-// implicit index signature that x-charts' `dataset` prop requires.
-export type BarDatum = {
-  label: string
-  value: number
-  shortLabel?: string
-}
+import { withDisplayLabels, type BarDatum } from './datum'
+import { useChartColors } from './useChartColors'
 
 export interface MagnitudeBarChartProps {
   data: readonly BarDatum[]
@@ -39,6 +29,14 @@ const CHART_CHROME = 72
  */
 const LABEL_WIDTH = { wide: 168, narrow: 88 } as const
 
+/**
+ * A horizontal bar chart of one measure.
+ *
+ * An SVG of rectangles conveys nothing to a screen reader, or to an agent
+ * reading the DOM, so the same data ships as a visually hidden table. That table
+ * is the accessible equivalent rather than a decorative extra, and the SVG is
+ * hidden so it is not announced twice.
+ */
 export function MagnitudeBarChart({
   data,
   title = 'Stars per tracked repository',
@@ -47,26 +45,19 @@ export function MagnitudeBarChart({
   skipAnimation = false,
 }: MagnitudeBarChartProps) {
   const theme = useTheme()
+  const colors = useChartColors()
   const narrow = useMediaQuery(theme.breakpoints.down('sm'))
-  const seriesColor = color ?? theme.palette.primary.main
-  const lineColor = theme.palette.divider
-  const labelColor = theme.palette.text.secondary
+  const seriesColor = color ?? colors.primary
+  const lineColor = colors.line
+  const labelColor = colors.label
 
-  /**
-   * Memoised, and above the early return so the hook order never changes.
-   *
-   * x-charts keeps an internal reselect store: handing it a freshly built
-   * array on every render defeats that memoisation and makes it recompute the
-   * whole chart, which it warns about in development.
-   */
+  /** x-charts memoises internally; a freshly built array each render defeats it. */
   const sorted = useMemo(
     () =>
-      [...data]
-        .sort((a, b) => b.value - a.value)
-        .map((datum) => ({
-          ...datum,
-          label: narrow ? (datum.shortLabel ?? datum.label) : datum.label,
-        })),
+      withDisplayLabels(
+        [...data].sort((a, b) => b.value - a.value),
+        narrow,
+      ),
     [data, narrow],
   )
 
@@ -82,16 +73,14 @@ export function MagnitudeBarChart({
 
   return (
     <Box component="figure" sx={{ m: 0 }}>
-      <Typography variant="subtitle2" component="figcaption" sx={{ mb: 1, fontWeight: 600 }}>
+      <Typography
+        variant="subtitle2"
+        component="figcaption"
+        sx={{ mb: 1, fontWeight: 600 }}
+      >
         {title}
       </Typography>
 
-      {/*
-        The chart is an SVG of rectangles: it conveys nothing to a screen
-        reader, and nothing to an agent reading the DOM either. This table is
-        the same data in a form both can use. It is the accessible equivalent,
-        not a decorative extra, so it carries the real numbers.
-      */}
       <Box component="table" sx={visuallyHidden}>
         <caption>{title}</caption>
         <thead>
@@ -110,8 +99,6 @@ export function MagnitudeBarChart({
         </tbody>
       </Box>
 
-      {/* The table above is the accessible equivalent, so the redundant SVG is
-          hidden rather than announced twice. */}
       <BarChart
         aria-hidden="true"
         dataset={sorted}
@@ -125,7 +112,7 @@ export function MagnitudeBarChart({
         yAxis={[
           {
             scaleType: 'band',
-            dataKey: 'label',
+            dataKey: 'display',
             width: narrow ? LABEL_WIDTH.narrow : LABEL_WIDTH.wide,
             categoryGapRatio: 0.35,
             tickLabelStyle: { fill: labelColor, fontSize: narrow ? 11 : 12 },

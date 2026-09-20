@@ -6,7 +6,8 @@ import { BarChart } from '@mui/x-charts/BarChart'
 import { visuallyHidden } from '@repo-radar/util'
 import { useMemo } from 'react'
 
-import type { BarDatum } from './MagnitudeBarChart'
+import { withDisplayLabels, type BarDatum } from './datum'
+import { useChartColors } from './useChartColors'
 
 export interface StalenessBarChartProps {
   data: readonly BarDatum[]
@@ -44,28 +45,22 @@ export function StalenessBarChart({
   skipAnimation = false,
 }: StalenessBarChartProps) {
   const theme = useTheme()
+  const colors = useChartColors()
   const narrow = useMediaQuery(theme.breakpoints.down('sm'))
 
   const band = (days: number) => {
-    if (days <= thresholds.active) return { label: 'Active', color: theme.palette.success.main }
-    if (days <= thresholds.quiet) return { label: 'Quiet', color: theme.palette.warning.main }
-    return { label: 'Stale', color: theme.palette.error.main }
+    if (days <= thresholds.active) return { label: 'Active', color: colors.success }
+    if (days <= thresholds.quiet) return { label: 'Quiet', color: colors.warning }
+    return { label: 'Stale', color: colors.error }
   }
 
-  /**
-   * Memoised, and above the early return so the hook order never changes.
-   *
-   * x-charts memoises internally with reselect; a freshly built array each
-   * render defeats it and forces a full recompute.
-   */
+  /** x-charts memoises internally; a freshly built array each render defeats it. */
   const sorted = useMemo(
     () =>
-      [...data]
-        .sort((a, b) => a.value - b.value)
-        .map((datum) => ({
-          ...datum,
-          label: narrow ? (datum.shortLabel ?? datum.label) : datum.label,
-        })),
+      withDisplayLabels(
+        [...data].sort((a, b) => a.value - b.value),
+        narrow,
+      ),
     [data, narrow],
   )
 
@@ -73,7 +68,11 @@ export function StalenessBarChart({
 
   return (
     <Box component="figure" sx={{ m: 0 }}>
-      <Typography variant="subtitle2" component="figcaption" sx={{ mb: 1, fontWeight: 600 }}>
+      <Typography
+        variant="subtitle2"
+        component="figcaption"
+        sx={{ mb: 1, fontWeight: 600 }}
+      >
         {title}
       </Typography>
 
@@ -110,13 +109,16 @@ export function StalenessBarChart({
         yAxis={[
           {
             scaleType: 'band',
-            dataKey: 'label',
+            dataKey: 'display',
             width: narrow ? LABEL_WIDTH.narrow : LABEL_WIDTH.wide,
             categoryGapRatio: 0.35,
-            tickLabelStyle: { fill: theme.palette.text.secondary, fontSize: narrow ? 11 : 12 },
+            tickLabelStyle: {
+              fill: colors.label,
+              fontSize: narrow ? 11 : 12,
+            },
           },
         ]}
-        xAxis={[{ tickLabelStyle: { fill: theme.palette.text.secondary, fontSize: 11 } }]}
+        xAxis={[{ tickLabelStyle: { fill: colors.label, fontSize: 11 } }]}
         series={[
           {
             dataKey: 'value',
@@ -125,14 +127,14 @@ export function StalenessBarChart({
               value === null ? '—' : `${plural(value)} — ${band(value).label}`,
           },
         ]}
-        // Per-bar colour by band, so the chart says the same thing the
-        // freshness pills do.
         slotProps={{
           bar: { style: { transition: skipAnimation ? 'none' : undefined } },
         }}
         sx={{
-          '& .MuiChartsAxis-line, & .MuiChartsAxis-tick': { stroke: theme.palette.divider },
-          '& .MuiChartsGrid-line': { stroke: theme.palette.divider },
+          '& .MuiChartsAxis-line, & .MuiChartsAxis-tick': {
+            stroke: colors.line,
+          },
+          '& .MuiChartsGrid-line': { stroke: colors.line },
           ...Object.fromEntries(
             sorted.map((datum, index) => [
               `& .MuiBarElement-root:nth-of-type(${index + 1})`,

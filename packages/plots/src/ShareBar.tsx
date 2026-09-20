@@ -1,17 +1,25 @@
 import Box from '@mui/material/Box'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
-import { useTheme } from '@mui/material/styles'
 import { visuallyHidden } from '@repo-radar/util'
 import { useMemo } from 'react'
 
-import type { BarDatum } from './MagnitudeBarChart'
+import type { BarDatum } from './datum'
+import { useChartColors } from './useChartColors'
 
 export interface ShareBarProps {
   data: readonly BarDatum[]
   colors: readonly string[]
   title?: string
   maxSlots?: number
+  /**
+   * `plots` does not depend on `ui`, so it cannot see the `fontFamilyMono`
+   * augmentation declared on `ui`'s theme — that type only exists once both
+   * packages are imported into the same program, which is true for
+   * `apps/web` but not for this package on its own. The caller passes the
+   * token down instead, the same way `MagnitudeBarChart` takes `color`.
+   */
+  monoFontFamily?: string
 }
 
 /**
@@ -30,8 +38,9 @@ export function ShareBar({
   colors,
   title = 'Composition',
   maxSlots = 8,
+  monoFontFamily = 'inherit',
 }: ShareBarProps) {
-  const theme = useTheme()
+  const chart = useChartColors()
 
   const { segments, total } = useMemo(() => {
     const ranked = [...data].sort((a, b) => b.value - a.value)
@@ -46,14 +55,11 @@ export function ShareBar({
     return {
       segments: rows.map((row, index) => ({
         ...row,
-        color:
-          index < maxSlots
-            ? (colors[index] ?? theme.palette.text.disabled)
-            : theme.palette.text.disabled,
+        color: index < maxSlots ? (colors[index] ?? chart.disabled) : chart.disabled,
       })),
       total: rows.reduce((sum, row) => sum + row.value, 0),
     }
-  }, [data, colors, maxSlots, theme.palette.text.disabled])
+  }, [data, colors, maxSlots, chart.disabled])
 
   if (segments.length === 0 || total === 0) return null
 
@@ -69,7 +75,6 @@ export function ShareBar({
         {title}
       </Typography>
 
-      {/* The accessible equivalent: proportions as numbers. */}
       <Box component="table" sx={visuallyHidden}>
         <caption>{title}</caption>
         <thead>
@@ -92,7 +97,13 @@ export function ShareBar({
 
       <Box
         aria-hidden="true"
-        sx={{ display: 'flex', gap: '2px', height: 14, borderRadius: 1, overflow: 'hidden' }}
+        sx={{
+          display: 'flex',
+          gap: '2px',
+          height: 14,
+          borderRadius: 1,
+          overflow: 'hidden',
+        }}
       >
         {segments.map((segment) => (
           <Tooltip
@@ -104,8 +115,6 @@ export function ShareBar({
         ))}
       </Box>
 
-      {/* Two or more parts always get a legend, so identity is never colour
-          alone. */}
       <Box
         aria-hidden="true"
         sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 1.25 }}
@@ -116,13 +125,19 @@ export function ShareBar({
             sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}
           >
             <Box
-              sx={{ width: 9, height: 9, borderRadius: 0.5, bgcolor: segment.color, flexShrink: 0 }}
+              sx={{
+                width: 9,
+                height: 9,
+                borderRadius: 0.5,
+                bgcolor: segment.color,
+                flexShrink: 0,
+              }}
             />
             <Typography variant="caption" sx={{ fontSize: 12, color: 'text.secondary' }}>
               {segment.label}{' '}
               <Box
                 component="span"
-                sx={{ fontFamily: theme.typography.fontFamilyMono, color: 'text.primary' }}
+                sx={{ fontFamily: monoFontFamily, color: 'text.primary' }}
               >
                 {share(segment.value)}%
               </Box>
