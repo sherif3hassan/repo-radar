@@ -1,0 +1,4 @@
+{
+  "extends": "@repo-radar/config/tsconfig/base.json",
+  "include": ["src"]
+}
