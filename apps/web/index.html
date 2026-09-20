@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Repo Radar</title>
+    <meta
+      name="description"
+      content="Search GitHub repositories, track your favourites, and monitor their stars, open issues and last commit date."
+    />
+    <!-- Without this the browser requests /favicon.ico and logs a 404, which
+         Lighthouse counts against best practices. -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)" />
+
+    <!-- Preconnect saves the DNS + TLS round trip before the CSS is even parsed. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+
+    <!-- The API is hit on first keystroke; warming the connection early. -->
+    <link rel="preconnect" href="https://api.github.com" crossorigin />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
