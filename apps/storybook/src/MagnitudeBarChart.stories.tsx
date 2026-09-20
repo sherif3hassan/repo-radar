@@ -1,5 +1,6 @@
 import { useTheme } from '@mui/material/styles'
 import { MagnitudeBarChart, type BarDatum } from '@repo-radar/plots'
+import { theme } from '@repo-radar/ui'
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 const repos: BarDatum[] = [
@@ -13,7 +14,11 @@ const repos: BarDatum[] = [
 const meta = {
   title: 'plots/MagnitudeBarChart',
   component: MagnitudeBarChart,
-  args: { data: repos, skipAnimation: true },
+  args: {
+    data: repos,
+    skipAnimation: true,
+    monoFontFamily: theme.typography.fontFamilyMono,
+  },
 } satisfies Meta<typeof MagnitudeBarChart>
 
 export default meta

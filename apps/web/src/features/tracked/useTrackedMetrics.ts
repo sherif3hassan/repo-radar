@@ -124,17 +124,23 @@ export function useTrackedMetrics(refs: readonly RepoRef[]): TrackedMetrics {
       return [toDatum(entry, Math.max(0, (now - parsed) / MS_PER_DAY))]
     })
 
-    const byLanguage = new Map<string, number>()
+    const byLanguage = new Map<string, string[]>()
     for (const entry of resolved) {
       const language = entry.language ?? 'Unknown'
-      byLanguage.set(language, (byLanguage.get(language) ?? 0) + 1)
+      const names = byLanguage.get(language) ?? []
+      names.push(toFullName(entry.ref))
+      byLanguage.set(language, names)
     }
 
     return {
       stars: resolved.map((entry) => toDatum(entry, entry.stars)),
       issues: resolved.map((entry) => toDatum(entry, entry.openIssues)),
       staleness,
-      languages: [...byLanguage].map(([label, value]) => ({ label, value })),
+      languages: [...byLanguage].map(([label, names]) => ({
+        label,
+        value: names.length,
+        detail: names.join(', '),
+      })),
       totals: {
         repositories: resolved.length,
         stars: resolved.reduce((sum, entry) => sum + entry.stars, 0),

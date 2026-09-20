@@ -2,24 +2,22 @@ import IconButton from '@mui/material/IconButton'
 import Tooltip from '@mui/material/Tooltip'
 import { useGetRepoStatsQuery } from '@repo-radar/data-access'
 import { asGithubError, toFullName, type RepoRef } from '@repo-radar/types'
-import { Icon, RepoCard, RepoTableRow } from '@repo-radar/ui'
+import { Icon, RepoCard } from '@repo-radar/ui'
 
 import { useTracking } from '../../app/tracking'
 
 export interface TrackedRepoProps {
   repo: RepoRef
-  /** The page owns the breakpoint; this just renders what it is told. */
-  variant: 'row' | 'card'
 }
 
 /**
- * The connected half of the presentational components.
+ * The connected half of the presentational component.
  *
  * Each instance owns its own cache entry, so loading, error and refresh are
  * per-repository by construction — there is no shared loading flag anywhere in
  * this app.
  */
-export function TrackedRepo({ repo, variant }: TrackedRepoProps) {
+export function TrackedRepo({ repo }: TrackedRepoProps) {
   const { data, isFetching, isError, error, refetch } = useGetRepoStatsQuery(repo)
   const { untrack } = useTracking()
 
@@ -36,6 +34,7 @@ export function TrackedRepo({ repo, variant }: TrackedRepoProps) {
           openIssues: data.openIssues,
           openPullRequests: data.openPullRequests,
           lastCommitAt: data.lastCommitAt,
+          language: data.language,
         }
       : undefined,
     loading: isFetching && !data,
@@ -69,9 +68,5 @@ export function TrackedRepo({ repo, variant }: TrackedRepoProps) {
     </>
   )
 
-  return variant === 'row' ? (
-    <RepoTableRow {...shared} actions={actions} />
-  ) : (
-    <RepoCard {...shared} actions={actions} />
-  )
+  return <RepoCard {...shared} actions={actions} />
 }

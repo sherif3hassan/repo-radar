@@ -9,8 +9,8 @@ import ListItemText from '@mui/material/ListItemText'
 import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
 import { parseFullName, type Repo, type RepoRef } from '@repo-radar/types'
-import { clampLines, StatChip } from '@repo-radar/ui'
-import { formatCompactNumber } from '@repo-radar/util'
+import { clampLines, freshness, Icon, StatChip } from '@repo-radar/ui'
+import { formatCompactNumber, formatRelativeDate, visuallyHidden } from '@repo-radar/util'
 
 import { useIsTracked, useTracking } from '../../app/tracking'
 
@@ -25,7 +25,8 @@ function TrackButton({ repo }: { repo: Repo }) {
   return (
     <Button
       size="small"
-      variant={tracked ? 'text' : 'outlined'}
+      variant={tracked ? 'outlined' : 'contained'}
+      startIcon={tracked ? <Icon name="check" size={13} /> : undefined}
       onClick={() => (tracked ? untrack(ref) : track(ref))}
       aria-label={`${tracked ? 'Stop tracking' : 'Track'} ${repo.fullName}`}
     >
@@ -36,9 +37,21 @@ function TrackButton({ repo }: { repo: Repo }) {
 
 export function SearchResultSkeleton({ count = 5 }: { count?: number }) {
   return (
-    <List aria-busy="true" aria-label="Loading results">
+    <List
+      aria-busy="true"
+      aria-label="Loading results"
+      sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}
+    >
       {Array.from({ length: count }, (_, index) => (
-        <ListItem key={index} divider>
+        <ListItem
+          key={index}
+          sx={{
+            border: 1,
+            borderColor: 'divider',
+            borderRadius: 2,
+            bgcolor: 'background.paper',
+          }}
+        >
           <ListItemAvatar>
             <Skeleton variant="circular" width={40} height={40} />
           </ListItemAvatar>
@@ -64,9 +77,19 @@ export interface SearchResultListProps {
  */
 export function SearchResultList({ repos }: SearchResultListProps) {
   return (
-    <List aria-label="Search results">
+    <List aria-label="Search results" sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
       {repos.map((repo) => (
-        <ListItem key={repo.id} divider alignItems="flex-start" sx={{ gap: 2 }}>
+        <ListItem
+          key={repo.id}
+          alignItems="flex-start"
+          sx={{
+            gap: 2,
+            border: 1,
+            borderColor: 'divider',
+            borderRadius: 2,
+            bgcolor: 'background.paper',
+          }}
+        >
           <ListItemAvatar>
             <Avatar src={repo.avatarUrl} alt="" variant="rounded" />
           </ListItemAvatar>
@@ -116,6 +139,33 @@ export function SearchResultList({ repos }: SearchResultListProps) {
                     hint="Open issues and pull requests, as GitHub counts them"
                   />
                   {repo.language ? <StatChip icon="code" label={repo.language} /> : null}
+
+                  <Box
+                    component="span"
+                    sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}
+                  >
+                    <Box
+                      component="span"
+                      aria-hidden="true"
+                      sx={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        flexShrink: 0,
+                        bgcolor: `${freshness(repo.pushedAt).tone}.main`,
+                      }}
+                    />
+                    <Typography
+                      variant="caption"
+                      component="span"
+                      sx={{ fontSize: 11, color: 'text.secondary' }}
+                    >
+                      {formatRelativeDate(repo.pushedAt) ?? 'Unknown'}
+                    </Typography>
+                    <Box component="span" sx={visuallyHidden}>
+                      {freshness(repo.pushedAt).label}
+                    </Box>
+                  </Box>
                 </Box>
               </>
             }

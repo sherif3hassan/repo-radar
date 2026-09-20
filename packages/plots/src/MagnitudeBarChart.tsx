@@ -15,6 +15,7 @@ export interface MagnitudeBarChartProps {
   height?: number
   color?: string
   skipAnimation?: boolean
+  monoFontFamily?: string
 }
 
 const ROW_HEIGHT = 34
@@ -43,6 +44,7 @@ export function MagnitudeBarChart({
   height,
   color,
   skipAnimation = false,
+  monoFontFamily,
 }: MagnitudeBarChartProps) {
   const theme = useTheme()
   const colors = useChartColors()
@@ -114,14 +116,14 @@ export function MagnitudeBarChart({
             scaleType: 'band',
             dataKey: 'display',
             width: narrow ? LABEL_WIDTH.narrow : LABEL_WIDTH.wide,
-            categoryGapRatio: 0.35,
-            tickLabelStyle: { fill: labelColor, fontSize: narrow ? 11 : 12 },
+            categoryGapRatio: 0.5,
+            tickLabelStyle: { fill: labelColor, fontSize: narrow ? 11 : 12, fontFamily: monoFontFamily },
           },
         ]}
         xAxis={[
           {
             valueFormatter: (value: number) => formatCompactNumber(value),
-            tickLabelStyle: { fill: labelColor, fontSize: 11 },
+            tickLabelStyle: { fill: labelColor, fontSize: 11, fontFamily: monoFontFamily },
           },
         ]}
         series={[

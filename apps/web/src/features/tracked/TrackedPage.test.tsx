@@ -10,40 +10,11 @@ import { TrackedPage } from './TrackedPage'
 
 const storeWith = (ids: string[]) => makeStore({ tracked: { ids } })
 
-/**
- * A row's accessible name is its cells' text joined, so match on a fragment.
- * jsdom has no matchMedia, so `useMediaQuery` is false and the table renders —
- * the stacked variant is covered separately below.
- */
-const nameOf = (fullName: string) => new RegExp(fullName.replace('/', '\\/'))
-
-/**
- * Scoped to the tracked table on purpose: the chart renders its own
- * visually-hidden data table for screen readers, so an unscoped row query
- * matches both.
- */
-const trackedTable = () =>
-  within(screen.getByRole('table', { name: 'Tracked repositories' }))
-const findRepo = (fullName: string) =>
-  trackedTable().findByRole('row', { name: nameOf(fullName) })
-const getRepo = (fullName: string) =>
-  trackedTable().getByRole('row', { name: nameOf(fullName) })
+/** Every tracked repository renders as a card, named by its full repository name. */
+const findRepo = (fullName: string) => screen.findByRole('article', { name: fullName })
+const getRepo = (fullName: string) => screen.getByRole('article', { name: fullName })
 
 const originalMatchMedia = window.matchMedia
-
-/** Forces `useMediaQuery` to report a narrow viewport. */
-const setNarrowViewport = () => {
-  window.matchMedia = ((query: string) => ({
-    matches: true,
-    media: query,
-    onchange: null,
-    addListener: () => {},
-    removeListener: () => {},
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    dispatchEvent: () => false,
-  })) as unknown as typeof window.matchMedia
-}
 
 afterEach(() => {
   window.matchMedia = originalMatchMedia
@@ -56,7 +27,7 @@ describe('TrackedPage', () => {
     expect(screen.getByText('Nothing tracked yet')).toBeInTheDocument()
   })
 
-  it('renders a row per tracked repository', async () => {
+  it('renders a card per tracked repository', async () => {
     renderWithProviders(<TrackedPage />, {
       store: storeWith(['facebook/react', 'vuejs/core']),
     })
@@ -66,49 +37,38 @@ describe('TrackedPage', () => {
     expect(screen.getByText('2 tracked repositories')).toBeInTheDocument()
   })
 
-  it('gives the table column headers', async () => {
-    renderWithProviders(<TrackedPage />, { store: storeWith(['facebook/react']) })
-
-    await findRepo('facebook/react')
-    for (const header of ['Repository', 'Stars', 'Issues', 'Last commit', 'Actions']) {
-      expect(
-        trackedTable().getByRole('columnheader', { name: header }),
-      ).toBeInTheDocument()
-    }
-  })
-
   it('shows stars and last commit', async () => {
     renderWithProviders(<TrackedPage />, { store: storeWith(['facebook/react']) })
 
-    const row = await findRepo('facebook/react')
-    expect(await within(row).findByText('228K')).toBeInTheDocument()
+    const card = await findRepo('facebook/react')
+    expect(await within(card).findByText('228K')).toBeInTheDocument()
   })
 
   /**
    * GitHub's `open_issues_count` counts pull requests as issues. The fixture
-   * reports 950 with 50 open PRs, so the row must show 900.
+   * reports 950 with 50 open PRs, so the card must show 900.
    */
   it('excludes pull requests from the open issue count', async () => {
     renderWithProviders(<TrackedPage />, { store: storeWith(['facebook/react']) })
 
-    const row = await findRepo('facebook/react')
-    expect(await within(row).findByText('900')).toBeInTheDocument()
-    expect(within(row).queryByText('950')).not.toBeInTheDocument()
+    const card = await findRepo('facebook/react')
+    expect(await within(card).findByText('900')).toBeInTheDocument()
+    expect(within(card).queryByText('950')).not.toBeInTheDocument()
   })
 
   it('labels commit freshness in text, not only colour', async () => {
     renderWithProviders(<TrackedPage />, { store: storeWith(['facebook/react']) })
 
-    const row = await findRepo('facebook/react')
-    expect(await within(row).findByText('Active')).toBeInTheDocument()
+    const card = await findRepo('facebook/react')
+    expect(await within(card).findByText('Active')).toBeInTheDocument()
   })
 
   /**
    * The compact error form used to swap its content for the title alone, so a
-   * failed row lost the reset time and the token remedy that the search page
+   * failed card lost the reset time and the token remedy that the search page
    * shows in full for the same error.
    */
-  it('keeps the guidance on a failed row', async () => {
+  it('keeps the guidance on a failed card', async () => {
     server.use(
       http.get('https://api.github.com/repos/ghost/limited', () =>
         HttpResponse.json(
@@ -120,14 +80,14 @@ describe('TrackedPage', () => {
 
     renderWithProviders(<TrackedPage />, { store: storeWith(['ghost/limited']) })
 
-    const row = await findRepo('ghost/limited')
-    expect(await within(row).findByText('GitHub rate limit reached')).toBeInTheDocument()
-    expect(within(row).getByText(/60 per hour/)).toBeInTheDocument()
-    expect(within(row).getByText(/personal access token/)).toBeInTheDocument()
+    const card = await findRepo('ghost/limited')
+    expect(await within(card).findByText('GitHub rate limit reached')).toBeInTheDocument()
+    expect(within(card).getByText(/60 per hour/)).toBeInTheDocument()
+    expect(within(card).getByText(/personal access token/)).toBeInTheDocument()
   })
 
   /**
-   * The requirement this whole design exists for: each row owns its own cache
+   * The requirement this whole design exists for: each card owns its own cache
    * entry, so one repository failing must leave its neighbours untouched.
    */
   it('keeps loading and error state independent per repository', async () => {
@@ -236,46 +196,20 @@ describe('TrackedPage', () => {
   })
 
   /**
-   * Separate views rather than separate axes. Stars, issues, days and language
-   * counts have unrelated magnitudes and meanings; sharing scales would invent
-   * crossover points that say nothing about the data.
+   * Stars, issues and activity are permanent charts now — not tabs behind a
+   * click — since only three dashboard-worthy measures remain once languages
+   * moved to `SummaryCard`'s share bar.
    */
-  it.each([
-    ['Issues', 'Open issues per tracked repository'],
-    ['Activity', 'Days since last commit'],
-    ['Languages', 'Repositories by language'],
-  ])('switches to the %s view', async (tab, tableName) => {
-    const { user } = renderWithProviders(<TrackedPage />, {
-      store: storeWith(['facebook/react']),
-    })
-
-    await screen.findByRole('table', { name: 'Stars per tracked repository' })
-    await user.click(screen.getByRole('tab', { name: tab }))
-
-    expect(await screen.findByRole('table', { name: tableName })).toBeInTheDocument()
-  })
-
-  /** Only one chart is mounted at a time, so the others are genuinely gone. */
-  it('shows one chart at a time', async () => {
-    const { user } = renderWithProviders(<TrackedPage />, {
-      store: storeWith(['facebook/react']),
-    })
-
-    await screen.findByRole('table', { name: 'Stars per tracked repository' })
-    await user.click(screen.getByRole('tab', { name: 'Activity' }))
+  it('charts issues alongside stars and activity', async () => {
+    renderWithProviders(<TrackedPage />, { store: storeWith(['facebook/react']) })
 
     expect(
-      screen.queryByRole('table', { name: 'Stars per tracked repository' }),
-    ).not.toBeInTheDocument()
+      await screen.findByRole('table', { name: 'Open issues per tracked repository' }),
+    ).toBeInTheDocument()
   })
 
   it('states commit activity in text, not only bar colour', async () => {
-    const { user } = renderWithProviders(<TrackedPage />, {
-      store: storeWith(['facebook/react']),
-    })
-
-    await screen.findByRole('table', { name: 'Stars per tracked repository' })
-    await user.click(screen.getByRole('tab', { name: 'Activity' }))
+    renderWithProviders(<TrackedPage />, { store: storeWith(['facebook/react']) })
 
     const staleness = within(
       await screen.findByRole('table', { name: 'Days since last commit' }),
@@ -305,22 +239,7 @@ describe('TrackedPage', () => {
 
     expect(store.getState().tracked.ids).toEqual(['vuejs/core'])
     await waitFor(() =>
-      expect(
-        trackedTable().queryByRole('row', { name: nameOf('facebook/react') }),
-      ).not.toBeInTheDocument(),
+      expect(screen.queryByRole('article', { name: 'facebook/react' })).not.toBeInTheDocument(),
     )
-  })
-
-  describe('narrow viewport', () => {
-    it('stacks repositories as cards instead of table rows', async () => {
-      setNarrowViewport()
-
-      renderWithProviders(<TrackedPage />, { store: storeWith(['facebook/react']) })
-
-      expect(
-        await screen.findByRole('article', { name: 'facebook/react' }),
-      ).toBeInTheDocument()
-      expect(screen.queryByRole('table')).not.toBeInTheDocument()
-    })
   })
 })

@@ -16,6 +16,7 @@ export interface CategoryBarChartProps {
   maxSlots?: number
   height?: number
   skipAnimation?: boolean
+  monoFontFamily?: string
 }
 
 const ROW_HEIGHT = 34
@@ -29,6 +30,7 @@ export function CategoryBarChart({
   maxSlots = 8,
   height,
   skipAnimation = false,
+  monoFontFamily,
 }: CategoryBarChartProps) {
   const theme = useTheme()
   const chart = useChartColors()
@@ -39,7 +41,17 @@ export function CategoryBarChart({
     const tail = ranked.slice(maxSlots)
 
     return tail.length > 0
-      ? [...head, { label: 'Other', value: tail.reduce((sum, d) => sum + d.value, 0) }]
+      ? [
+          ...head,
+          {
+            label: 'Other',
+            value: tail.reduce((sum, d) => sum + d.value, 0),
+            detail: tail
+              .map((d) => d.detail)
+              .filter((d): d is string => Boolean(d))
+              .join(', '),
+          },
+        ]
       : head
   }, [data, maxSlots])
 
@@ -47,6 +59,7 @@ export function CategoryBarChart({
 
   const colorFor = (index: number) =>
     index < maxSlots ? (colors[index] ?? chart.disabled) : chart.disabled
+  const hasDetail = rows.some((row) => row.detail)
 
   return (
     <Box component="figure" sx={{ m: 0 }}>
@@ -64,6 +77,7 @@ export function CategoryBarChart({
           <tr>
             <th scope="col">Category</th>
             <th scope="col">Repositories</th>
+            {hasDetail ? <th scope="col">Which repositories</th> : null}
           </tr>
         </thead>
         <tbody>
@@ -71,6 +85,7 @@ export function CategoryBarChart({
             <tr key={row.label}>
               <th scope="row">{row.label}</th>
               <td>{row.value}</td>
+              {hasDetail ? <td>{row.detail ?? ''}</td> : null}
             </tr>
           ))}
         </tbody>
@@ -91,27 +106,30 @@ export function CategoryBarChart({
             scaleType: 'band',
             dataKey: 'label',
             width: narrow ? LABEL_WIDTH.narrow : LABEL_WIDTH.wide,
-            categoryGapRatio: 0.35,
+            categoryGapRatio: 0.5,
             tickLabelStyle: {
               fill: chart.label,
               fontSize: narrow ? 11 : 12,
+              fontFamily: monoFontFamily,
             },
           },
         ]}
         xAxis={[
           {
             tickMinStep: 1,
-            tickLabelStyle: { fill: chart.label, fontSize: 11 },
+            tickLabelStyle: { fill: chart.label, fontSize: 11, fontFamily: monoFontFamily },
           },
         ]}
         series={[
           {
             dataKey: 'value',
             label: 'Repositories',
-            valueFormatter: (value) =>
-              value === null
-                ? '—'
-                : `${value} ${value === 1 ? 'repository' : 'repositories'}`,
+            valueFormatter: (value, context) => {
+              if (value === null) return '—'
+              const count = `${value} ${value === 1 ? 'repository' : 'repositories'}`
+              const detail = rows[context.dataIndex]?.detail
+              return detail ? `${count} — ${detail}` : count
+            },
           },
         ]}
         sx={{

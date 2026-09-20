@@ -3,21 +3,24 @@ import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Link from '@mui/material/Link'
+import Skeleton from '@mui/material/Skeleton'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import type { GithubError } from '@repo-radar/types'
-import { formatCompactNumber, formatRelativeDate } from '@repo-radar/util'
+import { formatCompactNumber, formatRelativeDate, visuallyHidden } from '@repo-radar/util'
 import type { ReactNode } from 'react'
 
 import { clampLines } from './clamp'
 import { ErrorState } from './ErrorState'
-import { StatTile } from './StatTile'
+import { freshness } from './freshness'
+import { StatChip } from './StatChip'
 
 export interface RepoCardStats {
   stars: number
   openIssues: number
   openPullRequests: number | null
   lastCommitAt: string | null
+  language?: string | null
 }
 
 export interface RepoCardProps {
@@ -43,6 +46,8 @@ export function RepoCard({
   onRetry,
   actions,
 }: RepoCardProps) {
+  const fresh = freshness(stats?.lastCommitAt ?? null)
+
   return (
     <Card component="article" aria-label={fullName}>
       <CardContent>
@@ -92,27 +97,63 @@ export function RepoCard({
             <ErrorState error={error} onRetry={onRetry} dense />
           </Box>
         ) : (
-          <Stack direction="row" spacing={3} sx={{ mt: 2, flexWrap: 'wrap', rowGap: 2 }}>
-            <StatTile
-              label="Stars"
-              loading={loading}
-              value={stats ? formatCompactNumber(stats.stars) : null}
-            />
-            <StatTile
-              label="Open issues"
-              loading={loading}
-              value={stats ? formatCompactNumber(stats.openIssues) : null}
-              hint={
-                stats?.openPullRequests != null
-                  ? `Excludes ${formatCompactNumber(stats.openPullRequests)} open pull requests, which GitHub counts as issues.`
-                  : 'GitHub counts open pull requests as issues, so this may include both.'
-              }
-            />
-            <StatTile
-              label="Last commit"
-              loading={loading}
-              value={stats ? formatRelativeDate(stats.lastCommitAt) : null}
-            />
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            sx={{ mt: 2, flexWrap: 'wrap', rowGap: 1 }}
+          >
+            {loading ? (
+              <>
+                <Skeleton variant="rounded" width={54} height={22} />
+                <Skeleton variant="rounded" width={46} height={22} />
+                <Skeleton variant="rounded" width={40} height={22} />
+              </>
+            ) : (
+              <>
+                {stats?.language ? <StatChip icon="code" label={stats.language} /> : null}
+                <StatChip
+                  icon="star"
+                  label={stats ? formatCompactNumber(stats.stars) : '—'}
+                  hint="Stars"
+                />
+                <StatChip
+                  icon="issue"
+                  label={stats ? formatCompactNumber(stats.openIssues) : '—'}
+                  hint={
+                    stats?.openPullRequests != null
+                      ? `Excludes ${formatCompactNumber(stats.openPullRequests)} open pull requests, which GitHub counts as issues.`
+                      : 'GitHub counts open pull requests as issues, so this may include both.'
+                  }
+                />
+              </>
+            )}
+
+            <Box sx={{ flexGrow: 1 }} />
+
+            {loading ? (
+              <Skeleton width={90} height={20} />
+            ) : (
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Box
+                  component="span"
+                  aria-hidden="true"
+                  sx={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: '50%',
+                    flexShrink: 0,
+                    bgcolor: `${fresh.tone}.main`,
+                  }}
+                />
+                <Typography variant="body2" sx={{ fontSize: 13, color: 'text.secondary' }}>
+                  {stats ? (formatRelativeDate(stats.lastCommitAt) ?? 'Unknown') : '—'}
+                </Typography>
+                <Box component="span" sx={visuallyHidden}>
+                  {fresh.label}
+                </Box>
+              </Stack>
+            )}
           </Stack>
         )}
       </CardContent>

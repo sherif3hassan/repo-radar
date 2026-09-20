@@ -1,4 +1,4 @@
-import Chip from '@mui/material/Chip'
+import Box from '@mui/material/Box'
 import Tooltip from '@mui/material/Tooltip'
 import { getRateLimit, subscribeToRateLimit } from '@repo-radar/data-access'
 import { formatRelativeDate } from '@repo-radar/util'
@@ -29,13 +29,37 @@ export function RateLimitIndicator() {
           : `${remaining} of ${limit} GitHub requests left. Resets ${resets}.`
       }
     >
-      <Chip
-        size="small"
-        variant="outlined"
-        color={low ? 'warning' : 'default'}
-        label={`${remaining}/${limit}`}
+      <Box
+        component="span"
         aria-label={`${remaining} of ${limit} GitHub requests remaining`}
-      />
+        sx={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 0.75,
+          height: 32,
+          px: 1.25,
+          border: 1,
+          borderColor: 'divider',
+          borderRadius: 1.75,
+          fontFamily: (t) => t.typography.fontFamilyMono,
+          fontSize: 11,
+          color: low ? 'warning.main' : 'text.secondary',
+          fontVariantNumeric: 'tabular-nums',
+        }}
+      >
+        <Box
+          component="span"
+          aria-hidden="true"
+          sx={{
+            width: 6,
+            height: 6,
+            borderRadius: '50%',
+            flexShrink: 0,
+            bgcolor: low ? 'warning.main' : 'success.main',
+          }}
+        />
+        {remaining}/{limit}
+      </Box>
     </Tooltip>
   )
 }

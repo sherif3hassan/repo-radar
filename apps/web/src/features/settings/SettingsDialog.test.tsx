@@ -22,7 +22,7 @@ describe('SettingsDialog', () => {
       const { user } = await open(store)
 
       await user.type(screen.getByLabelText('Personal access token'), 'github_pat_abc')
-      await user.click(screen.getByRole('button', { name: 'Save' }))
+      await user.click(screen.getByRole('button', { name: 'Save token' }))
 
       expect(store.getState().settings.token).toBe('github_pat_abc')
     })
@@ -32,7 +32,7 @@ describe('SettingsDialog', () => {
       const { user } = await open(store)
 
       await user.type(screen.getByLabelText('Personal access token'), '   ')
-      await user.click(screen.getByRole('button', { name: 'Save' }))
+      await user.click(screen.getByRole('button', { name: 'Save token' }))
 
       expect(store.getState().settings.token).toBeNull()
     })
@@ -99,7 +99,7 @@ describe('SettingsDialog', () => {
     it('scales rendered text through the theme', async () => {
       const normal = await open()
       const before = getComputedStyle(
-        screen.getByRole('button', { name: 'Save' }),
+        screen.getByRole('button', { name: 'Save token' }),
       ).fontSize
       normal.unmount()
 
@@ -107,7 +107,7 @@ describe('SettingsDialog', () => {
         makeStore({ preferences: { ...defaultPreferences, textScale: 'larger' } }),
       )
       const after = getComputedStyle(
-        screen.getByRole('button', { name: 'Save' }),
+        screen.getByRole('button', { name: 'Save token' }),
       ).fontSize
 
       expect(Number.parseFloat(after)).toBeGreaterThan(Number.parseFloat(before))

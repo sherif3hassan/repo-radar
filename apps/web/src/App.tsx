@@ -25,8 +25,8 @@ const TrackedPage = lazy(() =>
 )
 
 const ROUTES = [
-  { path: '/search', label: 'Search' },
   { path: '/tracked', label: 'Tracked' },
+  { path: '/search', label: 'Search' },
 ] as const
 
 /**
@@ -39,23 +39,35 @@ const ROUTES = [
  */
 function Navigation() {
   return (
-    <Box component="nav" aria-label="Primary" sx={{ display: 'flex', gap: 0.5 }}>
+    <Box
+      component="nav"
+      aria-label="Primary"
+      sx={{
+        display: 'flex',
+        gap: 0.5,
+        p: 0.5,
+        width: 'fit-content',
+        bgcolor: 'action.hover',
+        border: 1,
+        borderColor: 'divider',
+        borderRadius: 2.5,
+      }}
+    >
       {ROUTES.map((route) => (
         <Button
           key={route.path}
           component={NavLink}
           to={route.path}
-          color="inherit"
+          disableElevation
           sx={{
-            px: 2,
-            borderRadius: 0,
+            px: 2.5,
+            borderRadius: 2,
             fontWeight: 500,
+            fontSize: 13,
             color: 'text.secondary',
-            borderBottom: 2,
-            borderColor: 'transparent',
             '&[aria-current="page"]': {
+              bgcolor: 'background.paper',
               color: 'text.primary',
-              borderColor: 'primary.main',
               fontWeight: 600,
             },
           }}
@@ -119,16 +131,24 @@ export function App() {
             pt: { xs: 1, md: 0 },
           }}
         >
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              flexShrink: 0,
-              color: 'primary.main',
-            }}
-          >
-            <Icon name="radar" size={20} />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, flexShrink: 0 }}>
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                flexShrink: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 2,
+                bgcolor: 'action.hover',
+                border: 1,
+                borderColor: 'divider',
+                color: 'primary.main',
+              }}
+            >
+              <Icon name="radar" size={18} />
+            </Box>
             <Typography
               variant="h6"
               component="span"

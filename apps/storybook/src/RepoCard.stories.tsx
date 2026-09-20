@@ -1,4 +1,5 @@
 import IconButton from '@mui/material/IconButton'
+import Stack from '@mui/material/Stack'
 import { Icon, RepoCard } from '@repo-radar/ui'
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
@@ -27,6 +28,7 @@ const meta = {
       openIssues: 855,
       openPullRequests: 526,
       lastCommitAt: daysAgo(2),
+      language: 'JavaScript',
     },
     actions,
   },
@@ -80,4 +82,50 @@ export const NoCommitDate: Story = {
   args: {
     stats: { stars: 3, openIssues: 0, openPullRequests: 0, lastCommitAt: null },
   },
+}
+
+/** The freshness dot and its text label, across every band the tracked grid shows. */
+export const FreshnessBands: Story = {
+  render: () => (
+    <Stack spacing={2} sx={{ maxWidth: 420 }}>
+      <RepoCard
+        fullName="active/repo"
+        description="Committed this week"
+        stats={{
+          stars: 1200,
+          openIssues: 4,
+          openPullRequests: 1,
+          lastCommitAt: daysAgo(3),
+          language: 'TypeScript',
+        }}
+      />
+      <RepoCard
+        fullName="quiet/repo"
+        description="A few months since the last commit"
+        stats={{
+          stars: 800,
+          openIssues: 21,
+          openPullRequests: 2,
+          lastCommitAt: daysAgo(150),
+          language: 'JavaScript',
+        }}
+      />
+      <RepoCard
+        fullName="stale/repo"
+        description="Years old"
+        stats={{
+          stars: 90,
+          openIssues: 60,
+          openPullRequests: 0,
+          lastCommitAt: daysAgo(1200),
+          language: 'Rust',
+        }}
+      />
+      <RepoCard
+        fullName="unknown/repo"
+        description="GitHub could not attribute the last commit"
+        stats={{ stars: 5, openIssues: 0, openPullRequests: 0, lastCommitAt: null }}
+      />
+    </Stack>
+  ),
 }

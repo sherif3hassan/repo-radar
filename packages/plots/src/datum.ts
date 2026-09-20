@@ -18,6 +18,14 @@ export type BarDatum = {
    * `name` is domain knowledge, and this package does not have any.
    */
   shortLabel?: string
+  /**
+   * A secondary description shown in the accessible table and the tooltip.
+   *
+   * Generic on purpose, same as `shortLabel`: this package does not know a bar
+   * might represent a set of repositories, only that a caller can attach more
+   * text to it.
+   */
+  detail?: string
 }
 
 /** A datum plus the label its bar is drawn with. `label` stays the full one. */

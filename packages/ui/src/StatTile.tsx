@@ -1,5 +1,6 @@
 import Box from '@mui/material/Box'
 import Skeleton from '@mui/material/Skeleton'
+import type { Theme } from '@mui/material/styles'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import { visuallyHidden } from '@repo-radar/util'
@@ -62,7 +63,12 @@ export function StatTile({ label, value, hint, loading = false }: StatTileProps)
         <Typography
           variant="h6"
           component="div"
-          sx={{ fontWeight: 600, lineHeight: 1.3 }}
+          sx={{
+            fontWeight: 600,
+            lineHeight: 1.3,
+            fontFamily: (t: Theme) => t.typography.fontFamilyMono,
+            fontVariantNumeric: 'tabular-nums',
+          }}
         >
           {value ?? '—'}
         </Typography>

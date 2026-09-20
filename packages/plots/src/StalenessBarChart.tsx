@@ -15,6 +15,7 @@ export interface StalenessBarChartProps {
   height?: number
   thresholds?: { active: number; quiet: number }
   skipAnimation?: boolean
+  monoFontFamily?: string
 }
 
 const ROW_HEIGHT = 34
@@ -43,6 +44,7 @@ export function StalenessBarChart({
   height,
   thresholds = DEFAULT_THRESHOLDS,
   skipAnimation = false,
+  monoFontFamily,
 }: StalenessBarChartProps) {
   const theme = useTheme()
   const colors = useChartColors()
@@ -111,14 +113,19 @@ export function StalenessBarChart({
             scaleType: 'band',
             dataKey: 'display',
             width: narrow ? LABEL_WIDTH.narrow : LABEL_WIDTH.wide,
-            categoryGapRatio: 0.35,
+            categoryGapRatio: 0.5,
             tickLabelStyle: {
               fill: colors.label,
               fontSize: narrow ? 11 : 12,
+              fontFamily: monoFontFamily,
             },
           },
         ]}
-        xAxis={[{ tickLabelStyle: { fill: colors.label, fontSize: 11 } }]}
+        xAxis={[
+          {
+            tickLabelStyle: { fill: colors.label, fontSize: 11, fontFamily: monoFontFamily },
+          },
+        ]}
         series={[
           {
             dataKey: 'value',

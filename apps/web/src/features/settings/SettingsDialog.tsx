@@ -142,7 +142,11 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
 
   const saveToken = () => {
     dispatch(tokenSet(token))
-    onClose()
+  }
+
+  const removeToken = () => {
+    dispatch(tokenSet(null))
+    setToken('')
   }
 
   return (
@@ -178,6 +182,17 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
               value={token}
               onChange={(event) => setToken(event.target.value)}
             />
+
+            <Stack direction="row" spacing={1}>
+              <Button variant="contained" size="small" onClick={saveToken}>
+                Save token
+              </Button>
+              {savedToken ? (
+                <Button size="small" color="inherit" onClick={removeToken}>
+                  Remove token
+                </Button>
+              ) : null}
+            </Stack>
 
             <Alert severity="info" variant="outlined">
               Stored in this browser&apos;s local storage and sent only to api.github.com.
@@ -241,22 +256,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
       </DialogContent>
 
       <DialogActions>
-        {savedToken ? (
-          <Button
-            color="inherit"
-            onClick={() => {
-              dispatch(tokenSet(null))
-              setToken('')
-              onClose()
-            }}
-          >
-            Remove token
-          </Button>
-        ) : null}
         <Button onClick={onClose}>Close</Button>
-        <Button variant="contained" onClick={saveToken}>
-          Save
-        </Button>
       </DialogActions>
     </Dialog>
   )

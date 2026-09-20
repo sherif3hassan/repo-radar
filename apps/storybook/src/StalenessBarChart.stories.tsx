@@ -1,10 +1,11 @@
 import { StalenessBarChart } from '@repo-radar/plots'
+import { theme } from '@repo-radar/ui'
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 const meta = {
   title: 'plots/StalenessBarChart',
   component: StalenessBarChart,
-  args: { skipAnimation: true },
+  args: { skipAnimation: true, monoFontFamily: theme.typography.fontFamilyMono },
 } satisfies Meta<typeof StalenessBarChart>
 
 export default meta

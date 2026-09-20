@@ -1,5 +1,6 @@
 import { useTheme } from '@mui/material/styles'
 import { CategoryBarChart, type BarDatum } from '@repo-radar/plots'
+import { theme } from '@repo-radar/ui'
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 const languages: BarDatum[] = [
@@ -17,6 +18,7 @@ const meta = {
     colors: [],
     skipAnimation: true,
     title: 'Repositories by language',
+    monoFontFamily: theme.typography.fontFamilyMono,
   },
 } satisfies Meta<typeof CategoryBarChart>
 
@@ -54,18 +56,13 @@ export const OverflowsToOther: Story = {
   render: withPalette,
   args: {
     data: [
-      'TypeScript',
-      'JavaScript',
-      'Rust',
-      'Go',
-      'Python',
-      'Ruby',
-      'C++',
-      'Elixir',
-      'Zig',
-      'Haskell',
-      'OCaml',
-    ].map((label, index) => ({ label, value: 12 - index })),
+      ...['TypeScript', 'JavaScript', 'Rust', 'Go', 'Python', 'Ruby', 'C++', 'Elixir'].map(
+        (label, index): BarDatum => ({ label, value: 12 - index }),
+      ),
+      { label: 'Zig', value: 4, detail: 'org/zig-tool' },
+      { label: 'Haskell', value: 3, detail: 'org/haskell-lib' },
+      { label: 'OCaml', value: 2, detail: 'org/ocaml-cli' },
+    ],
   },
 }
 
