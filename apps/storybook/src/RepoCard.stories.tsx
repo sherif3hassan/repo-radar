@@ -15,7 +15,6 @@ const actions = (
   </>
 )
 
-/** The stacked form used below the `md` breakpoint. */
 const meta = {
   title: 'ui/RepoCard',
   component: RepoCard,
@@ -23,7 +22,12 @@ const meta = {
     fullName: 'facebook/react',
     htmlUrl: 'https://github.com/facebook/react',
     description: 'The library for web and native user interfaces',
-    stats: { stars: 228_000, openIssues: 855, openPullRequests: 526, lastCommitAt: daysAgo(2) },
+    stats: {
+      stars: 228_000,
+      openIssues: 855,
+      openPullRequests: 526,
+      lastCommitAt: daysAgo(2),
+    },
     actions,
   },
 } satisfies Meta<typeof RepoCard>
@@ -41,7 +45,6 @@ export const Failed: Story = {
   args: { error: { kind: 'not-found' }, stats: undefined },
 }
 
-/** A long name must not push the stats out of the card. */
 export const LongName: Story = {
   args: {
     fullName: 'some-organisation/an-extremely-long-repository-name-for-testing-overflow',
@@ -54,7 +57,6 @@ export const NoDescription: Story = {
   args: { description: null },
 }
 
-/** A brand new repository. Zero is a real value, not a missing one. */
 export const ZeroStars: Story = {
   args: {
     fullName: 'someone/brand-new',
@@ -63,17 +65,17 @@ export const ZeroStars: Story = {
   },
 }
 
-/**
- * The pull-request count could not be fetched, so the issue figure is GitHub's
- * raw one and the tooltip says so.
- */
 export const IssueCountUncorrected: Story = {
   args: {
-    stats: { stars: 228_000, openIssues: 1381, openPullRequests: null, lastCommitAt: daysAgo(2) },
+    stats: {
+      stars: 228_000,
+      openIssues: 1381,
+      openPullRequests: null,
+      lastCommitAt: daysAgo(2),
+    },
   },
 }
 
-/** An empty repository answers 409 on the commits endpoint. */
 export const NoCommitDate: Story = {
   args: {
     stats: { stars: 3, openIssues: 0, openPullRequests: 0, lastCommitAt: null },

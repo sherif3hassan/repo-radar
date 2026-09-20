@@ -18,39 +18,47 @@ const actions = (
 const meta = {
   title: 'ui/RepoTable',
   component: RepoTable,
-  // Every story supplies its own rows through `render`; this satisfies the
-  // required prop without putting a default table in the controls panel.
   args: { children: null },
 } satisfies Meta<typeof RepoTable>
 
 export default meta
 type Story = StoryObj<typeof meta>
 
-/**
- * The state that matters most: each row owns its own cache entry, so one
- * repository loading, another failing and a third resolved is the *normal*
- * case rather than an edge case.
- */
 export const MixedStates: Story = {
   render: () => (
     <RepoTable>
       <RepoTableRow
         fullName="facebook/react"
         description="The library for web and native user interfaces"
-        stats={{ stars: 228_000, openIssues: 855, openPullRequests: 526, lastCommitAt: daysAgo(2) }}
+        stats={{
+          stars: 228_000,
+          openIssues: 855,
+          openPullRequests: 526,
+          lastCommitAt: daysAgo(2),
+        }}
         actions={actions}
       />
       <RepoTableRow fullName="reduxjs/redux-toolkit" loading actions={actions} />
       <RepoTableRow
         fullName="mswjs/msw"
         description="Seamless REST/GraphQL API mocking library"
-        stats={{ stars: 16_400, openIssues: 112, openPullRequests: 18, lastCommitAt: daysAgo(120) }}
+        stats={{
+          stars: 16_400,
+          openIssues: 112,
+          openPullRequests: 18,
+          lastCommitAt: daysAgo(120),
+        }}
         actions={actions}
       />
       <RepoTableRow
         fullName="someone/abandoned"
         description="Last touched a long time ago"
-        stats={{ stars: 42, openIssues: 9, openPullRequests: 0, lastCommitAt: daysAgo(900) }}
+        stats={{
+          stars: 42,
+          openIssues: 9,
+          openPullRequests: 0,
+          lastCommitAt: daysAgo(900),
+        }}
         actions={actions}
       />
       <RepoTableRow
@@ -63,24 +71,38 @@ export const MixedStates: Story = {
   ),
 }
 
-/** Freshness bands, which are labelled in text as well as coloured. */
 export const FreshnessBands: Story = {
   render: () => (
     <RepoTable>
       <RepoTableRow
         fullName="active/repo"
         description="Committed this week"
-        stats={{ stars: 1200, openIssues: 4, openPullRequests: 1, lastCommitAt: daysAgo(3) }}
+        stats={{
+          stars: 1200,
+          openIssues: 4,
+          openPullRequests: 1,
+          lastCommitAt: daysAgo(3),
+        }}
       />
       <RepoTableRow
         fullName="quiet/repo"
         description="A few months since the last commit"
-        stats={{ stars: 800, openIssues: 21, openPullRequests: 2, lastCommitAt: daysAgo(150) }}
+        stats={{
+          stars: 800,
+          openIssues: 21,
+          openPullRequests: 2,
+          lastCommitAt: daysAgo(150),
+        }}
       />
       <RepoTableRow
         fullName="stale/repo"
         description="Years old"
-        stats={{ stars: 90, openIssues: 60, openPullRequests: 0, lastCommitAt: daysAgo(1200) }}
+        stats={{
+          stars: 90,
+          openIssues: 60,
+          openPullRequests: 0,
+          lastCommitAt: daysAgo(1200),
+        }}
       />
       <RepoTableRow
         fullName="unknown/repo"
@@ -91,7 +113,6 @@ export const FreshnessBands: Story = {
   ),
 }
 
-/** Every row failing at once — what an exhausted rate limit looks like. */
 export const AllRateLimited: Story = {
   render: () => {
     const error = {
@@ -102,8 +123,18 @@ export const AllRateLimited: Story = {
 
     return (
       <RepoTable>
-        <RepoTableRow fullName="facebook/react" error={error} onRetry={() => {}} actions={actions} />
-        <RepoTableRow fullName="vuejs/core" error={error} onRetry={() => {}} actions={actions} />
+        <RepoTableRow
+          fullName="facebook/react"
+          error={error}
+          onRetry={() => {}}
+          actions={actions}
+        />
+        <RepoTableRow
+          fullName="vuejs/core"
+          error={error}
+          onRetry={() => {}}
+          actions={actions}
+        />
       </RepoTable>
     )
   },

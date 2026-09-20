@@ -1,13 +1,6 @@
 import { StalenessBarChart } from '@repo-radar/plots'
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
-/**
- * Days since the last commit.
- *
- * The one chart where colour carries meaning rather than identity — lower is
- * better, so bars are banded by threshold. The band is also stated in the
- * accessible table, so colour is never the only signal.
- */
 const meta = {
   title: 'plots/StalenessBarChart',
   component: StalenessBarChart,
@@ -17,7 +10,6 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-/** All three bands at once, which is the normal case for a real list. */
 export const AllBands: Story = {
   args: {
     data: [
@@ -39,7 +31,6 @@ export const AllActive: Story = {
   },
 }
 
-/** A long-abandoned repository dwarfs the rest of the axis. */
 export const VeryStale: Story = {
   args: {
     data: [
@@ -49,7 +40,6 @@ export const VeryStale: Story = {
   },
 }
 
-/** Committed today. Zero days must not render as "no data". */
 export const CommittedToday: Story = {
   args: {
     data: [
@@ -59,7 +49,6 @@ export const CommittedToday: Story = {
   },
 }
 
-/** Custom thresholds — a team with a tighter definition of "active". */
 export const TighterThresholds: Story = {
   args: {
     thresholds: { active: 7, quiet: 60 },
