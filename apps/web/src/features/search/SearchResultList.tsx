@@ -16,7 +16,10 @@ import { useIsTracked, useTracking } from '../../app/tracking'
 
 function TrackButton({ repo }: { repo: Repo }) {
   const { track, untrack } = useTracking()
-  const ref: RepoRef = parseFullName(repo.fullName) ?? { owner: repo.owner, name: repo.name }
+  const ref: RepoRef = parseFullName(repo.fullName) ?? {
+    owner: repo.owner,
+    name: repo.name,
+  }
   const tracked = useIsTracked(ref)
 
   return (
@@ -53,12 +56,15 @@ export interface SearchResultListProps {
   repos: readonly Repo[]
 }
 
+/**
+ * The Track button sits in the flex flow rather than in `secondaryAction`, which
+ * is absolutely positioned and reserves no width, so long descriptions used to
+ * run underneath it. Descriptions are clamped: unclamped, twenty results become
+ * several screens and the figures end up too far apart to compare.
+ */
 export function SearchResultList({ repos }: SearchResultListProps) {
   return (
     <List aria-label="Search results">
-      {/* The Track button sits in the flex flow rather than in
-          `secondaryAction`, which is absolutely positioned and reserves no
-          width — long descriptions used to run underneath it. */}
       {repos.map((repo) => (
         <ListItem key={repo.id} divider alignItems="flex-start" sx={{ gap: 2 }}>
           <ListItemAvatar>
@@ -67,7 +73,12 @@ export function SearchResultList({ repos }: SearchResultListProps) {
 
           <ListItemText
             primary={
-              <Link href={repo.htmlUrl} target="_blank" rel="noreferrer" underline="hover">
+              <Link
+                href={repo.htmlUrl}
+                target="_blank"
+                rel="noreferrer"
+                underline="hover"
+              >
                 {repo.fullName}
               </Link>
             }
@@ -78,9 +89,6 @@ export function SearchResultList({ repos }: SearchResultListProps) {
                     variant="body2"
                     color="text.secondary"
                     component="span"
-                    // Descriptions run to a paragraph. Unclamped, twenty
-                    // results become several screens and the numbers end up
-                    // too far apart to compare.
                     sx={clampLines(2)}
                   >
                     {repo.description}
@@ -89,15 +97,25 @@ export function SearchResultList({ repos }: SearchResultListProps) {
 
                 <Box
                   component="span"
-                  sx={{ display: 'flex', gap: 0.75, mt: 1, flexWrap: 'wrap', alignItems: 'center' }}
+                  sx={{
+                    display: 'flex',
+                    gap: 0.75,
+                    mt: 1,
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                  }}
                 >
-                  <StatChip icon="star" label={formatCompactNumber(repo.stars)} hint="Stars" />
+                  <StatChip
+                    icon="star"
+                    label={formatCompactNumber(repo.stars)}
+                    hint="Stars"
+                  />
                   <StatChip
                     icon="issue"
                     label={formatCompactNumber(repo.openIssues)}
                     hint="Open issues and pull requests, as GitHub counts them"
                   />
-                  {repo.language ? <StatChip dot="#2a78d6" label={repo.language} /> : null}
+                  {repo.language ? <StatChip icon="code" label={repo.language} /> : null}
                 </Box>
               </>
             }

@@ -3,7 +3,6 @@ import { useSearchParams } from 'react-router'
 
 import { useDebouncedValue } from './useDebouncedValue'
 
-/** Below this, a search is too broad to be worth a request. */
 const MIN_QUERY_LENGTH = 2
 
 /**
@@ -41,7 +40,6 @@ export function useSearchTerm(delay = 400) {
     setInput,
     clear,
     term,
-    /** True once the term is long enough to issue a request. */
     isSearchable: term.length >= MIN_QUERY_LENGTH,
     /** True while the user has typed something the debounce has not caught up to. */
     isPending: input.trim() !== term,
