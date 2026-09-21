@@ -47,12 +47,24 @@ export function createLimiter(max: number): Limiter {
           start: () => {
             signal?.removeEventListener('abort', onAbort)
 
-            task()
-              .then(resolve, reject)
-              .finally(() => {
+            /**
+             * Wrapped in an async IIFE rather than chaining off `task()`
+             * directly: a synchronous throw from `task()` would otherwise
+             * escape before `.finally()` ever attaches, leaking the slot
+             * `active` was given for it. `await`ing inside `try` routes a
+             * synchronous throw through the same `catch`/`finally` as a
+             * rejected promise.
+             */
+            void (async () => {
+              try {
+                resolve(await task())
+              } catch (error) {
+                reject(error)
+              } finally {
                 active -= 1
                 next()
-              })
+              }
+            })()
           },
           cancel: reject,
         }

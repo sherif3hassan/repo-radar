@@ -142,13 +142,21 @@ export function MagnitudeBarChart({
             dataKey: 'display',
             width: narrow ? LABEL_WIDTH.narrow : LABEL_WIDTH.wide,
             categoryGapRatio: 0.5,
-            tickLabelStyle: { fill: labelColor, fontSize: narrow ? 11 : 12, fontFamily: monoFontFamily },
+            tickLabelStyle: {
+              fill: labelColor,
+              fontSize: narrow ? 11 : 12,
+              fontFamily: monoFontFamily,
+            },
           },
         ]}
         xAxis={[
           {
             valueFormatter: (value: number) => formatCompactNumber(value),
-            tickLabelStyle: { fill: labelColor, fontSize: 11, fontFamily: monoFontFamily },
+            tickLabelStyle: {
+              fill: labelColor,
+              fontSize: 11,
+              fontFamily: monoFontFamily,
+            },
           },
         ]}
         series={[

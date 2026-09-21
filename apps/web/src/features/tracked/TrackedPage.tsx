@@ -104,7 +104,16 @@ export function TrackedPage() {
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: '1.3fr 1fr' },
+          /*
+           * `minmax(0, …)`, never a bare `1fr`: a bare track is `minmax(auto,
+           * 1fr)`, and `auto` refuses to shrink below the item's min-content —
+           * here a chart's own intrinsic width. That is what pushed the page
+           * wider than the viewport and left a blank strip to scroll into.
+           */
+          gridTemplateColumns: {
+            xs: 'minmax(0, 1fr)',
+            md: 'minmax(0, 1.3fr) minmax(0, 1fr)',
+          },
           gap: 2,
         }}
       >
@@ -147,7 +156,14 @@ export function TrackedPage() {
         <Box
           sx={{
             display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
+            /* `minmax(0, 1fr)` for the same reason as the chart grid above —
+             * a long `owner/name` would otherwise set each card's min-content
+             * width and push the row past the viewport. */
+            gridTemplateColumns: {
+              xs: 'minmax(0, 1fr)',
+              sm: 'repeat(2, minmax(0, 1fr))',
+              lg: 'repeat(3, minmax(0, 1fr))',
+            },
             gap: 2,
           }}
         >

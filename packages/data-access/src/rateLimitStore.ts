@@ -47,7 +47,11 @@ export const recordRateLimit = (next: RateLimit | null): void => {
   for (const listener of listeners) listener()
 }
 
+/**
+ * Clears recorded snapshots only. Live subscribers (e.g. `RateLimitIndicator`'s
+ * `useSyncExternalStore`) keep their subscription — clearing `listeners` here
+ * would drop them permanently, since nothing ever resubscribes after mount.
+ */
 export const resetRateLimit = (): void => {
   snapshots.clear()
-  listeners.clear()
 }

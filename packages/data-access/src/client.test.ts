@@ -1,7 +1,13 @@
 import type { BaseQueryApi } from '@reduxjs/toolkit/query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { countFromLink, githubBaseQuery, parseRateLimit, toGithubError } from './client'
+import {
+  countFromLink,
+  githubBaseQuery,
+  parseRateLimit,
+  setTokenAccessor,
+  toGithubError,
+} from './client'
 import {
   getRateLimit,
   recordRateLimit,
@@ -279,11 +285,12 @@ describe('rate limit store', () => {
 
   it('notifies subscribers when a snapshot is recorded', () => {
     const listener = vi.fn()
-    subscribeToRateLimit(listener)
+    const unsubscribe = subscribeToRateLimit(listener)
 
     recordRateLimit(snapshot())
 
     expect(listener).toHaveBeenCalledTimes(1)
+    unsubscribe()
   })
 
   it('stops notifying after unsubscribing', () => {
@@ -299,11 +306,12 @@ describe('rate limit store', () => {
   it('does not notify for a stale snapshot it discards', () => {
     recordRateLimit(snapshot({ remaining: 40 }))
     const listener = vi.fn()
-    subscribeToRateLimit(listener)
+    const unsubscribe = subscribeToRateLimit(listener)
 
     recordRateLimit(snapshot({ remaining: 45 }))
 
     expect(listener).not.toHaveBeenCalled()
+    unsubscribe()
   })
 })
 
@@ -376,5 +384,27 @@ describe('githubBaseQuery', () => {
     )
 
     expect(result).toMatchObject({ error: { kind: 'unauthorized' } })
+  })
+
+  /**
+   * `Headers.set` throws `TypeError` on a character outside Latin-1 — reachable
+   * from a token mangled by a bad copy-paste (a Cyrillic homoglyph here). The
+   * error must map onto `unauthorized`, not escape as an unhandled exception.
+   */
+  it('maps a token with a non-Latin-1 character to unauthorized without throwing', async () => {
+    setTokenAccessor(() => 'ghp_рbad')
+    const fetchMock = vi.fn(async () => ok())
+    vi.stubGlobal('fetch', fetchMock)
+
+    const result = await githubBaseQuery(
+      { path: '/x' },
+      api(new AbortController().signal),
+      {},
+    )
+
+    expect(result).toMatchObject({ error: { kind: 'unauthorized' } })
+    expect(fetchMock).not.toHaveBeenCalled()
+
+    setTokenAccessor(() => null)
   })
 })

@@ -18,7 +18,7 @@ const preferencesSchema = z.object({
 
 const persistedSchema = z.object({
   version: z.literal(1),
-  trackedIds: z.array(z.string()),
+  trackedIds: z.array(z.string().regex(/^[\w.-]+\/[\w.-]+$/)),
   token: z.string().nullable(),
   /**
    * Added after v1 shipped, and deliberately NOT a version bump: an unknown

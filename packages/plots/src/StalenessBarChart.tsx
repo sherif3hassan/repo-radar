@@ -149,7 +149,11 @@ export function StalenessBarChart({
         ]}
         xAxis={[
           {
-            tickLabelStyle: { fill: colors.label, fontSize: 11, fontFamily: monoFontFamily },
+            tickLabelStyle: {
+              fill: colors.label,
+              fontSize: 11,
+              fontFamily: monoFontFamily,
+            },
           },
         ]}
         series={[

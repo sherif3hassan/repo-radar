@@ -17,6 +17,12 @@ storybook-static/
 
 .claude/
 
+# Gitignored local notes — see AGENTS.md. REVIEW.md is intentionally tracked.
+COMMITS.md
+STATUS.md
+TODO.md
+PLAN.md
+
 .DS_Store
 Thumbs.db
 *.log

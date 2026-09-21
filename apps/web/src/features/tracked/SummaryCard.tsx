@@ -44,7 +44,12 @@ export function SummaryCard({ metrics }: { metrics: TrackedMetrics }) {
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' },
+          /* `minmax(0, 1fr)`, not a bare `1fr`: a bare track will not shrink
+           * below a tile's min-content, so a long value overflows the row. */
+          gridTemplateColumns: {
+            xs: 'repeat(2, minmax(0, 1fr))',
+            sm: 'repeat(4, minmax(0, 1fr))',
+          },
           gap: 1.5,
         }}
       >

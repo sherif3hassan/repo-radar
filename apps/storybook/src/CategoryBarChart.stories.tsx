@@ -56,9 +56,16 @@ export const OverflowsToOther: Story = {
   render: withPalette,
   args: {
     data: [
-      ...['TypeScript', 'JavaScript', 'Rust', 'Go', 'Python', 'Ruby', 'C++', 'Elixir'].map(
-        (label, index): BarDatum => ({ label, value: 12 - index }),
-      ),
+      ...[
+        'TypeScript',
+        'JavaScript',
+        'Rust',
+        'Go',
+        'Python',
+        'Ruby',
+        'C++',
+        'Elixir',
+      ].map((label, index): BarDatum => ({ label, value: 12 - index })),
       { label: 'Zig', value: 4, detail: 'org/zig-tool' },
       { label: 'Haskell', value: 3, detail: 'org/haskell-lib' },
       { label: 'OCaml', value: 2, detail: 'org/ocaml-cli' },

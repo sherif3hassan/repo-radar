@@ -179,7 +179,21 @@ export const githubBaseQuery: BaseQueryFn<
     Accept: ACCEPT,
     'X-GitHub-Api-Version': API_VERSION,
   })
-  if (token) headers.set('Authorization', `Bearer ${token}`)
+  if (token) {
+    /**
+     * `Headers.set` throws `TypeError` on a value with an interior newline or
+     * any character outside Latin-1 — reachable from a token picked up by a
+     * bad copy-paste (a homoglyph, a stray line break). Caught here, on its
+     * own, so a malformed token maps to `unauthorized` rather than escaping
+     * as an unhandled exception or being misreported as `network` by the
+     * fetch `try` below.
+     */
+    try {
+      headers.set('Authorization', `Bearer ${token}`)
+    } catch {
+      return { error: { kind: 'unauthorized' } }
+    }
+  }
 
   let response: Response
   try {

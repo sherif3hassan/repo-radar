@@ -250,9 +250,12 @@ export const createAppTheme = ({
         defaultProps: { disableRipple: true },
         styleOverrides: {
           root: ({ theme: t }) => ({
-            transition: t.transitions.create(['background-color', 'border-color', 'color'], {
-              duration: 150,
-            }),
+            transition: t.transitions.create(
+              ['background-color', 'border-color', 'color'],
+              {
+                duration: 150,
+              },
+            ),
             '&.Mui-focusVisible, &:focus-visible': {
               outline: `2px solid ${t.vars ? t.vars.palette.primary.main : t.palette.primary.main}`,
               outlineOffset: 2,
@@ -277,9 +280,12 @@ export const createAppTheme = ({
             borderRadius: 7,
             minWidth: 44,
             minHeight: 44,
-            transition: t.transitions.create(['border-color', 'color', 'background-color'], {
-              duration: 150,
-            }),
+            transition: t.transitions.create(
+              ['border-color', 'color', 'background-color'],
+              {
+                duration: 150,
+              },
+            ),
             '&:hover': {
               borderColor: t.vars ? t.vars.palette.primary.main : t.palette.primary.main,
               color: t.vars ? t.vars.palette.primary.main : t.palette.primary.main,

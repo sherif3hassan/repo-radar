@@ -13,6 +13,7 @@ export const freshness = (iso: string | null): Freshness => {
   if (!iso) return { label: 'Unknown', tone: 'warning' }
 
   const days = (Date.now() - Date.parse(iso)) / 86_400_000
+  if (Number.isNaN(days)) return { label: 'Unknown', tone: 'warning' }
   if (days <= 30) return { label: 'Active', tone: 'success' }
   if (days <= 365) return { label: 'Quiet', tone: 'warning' }
   return { label: 'Stale', tone: 'error' }

@@ -7,9 +7,10 @@ import ListItem from '@mui/material/ListItem'
 import ListItemAvatar from '@mui/material/ListItemAvatar'
 import ListItemText from '@mui/material/ListItemText'
 import Skeleton from '@mui/material/Skeleton'
+import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import { parseFullName, type Repo, type RepoRef } from '@repo-radar/types'
-import { clampLines, freshness, Icon, StatChip } from '@repo-radar/ui'
+import { clampLines, freshness, Icon, RepoName, StatChip } from '@repo-radar/ui'
 import { formatCompactNumber, formatRelativeDate, visuallyHidden } from '@repo-radar/util'
 
 import { entranceSx } from '../../app/motion'
@@ -24,16 +25,46 @@ function TrackButton({ repo }: { repo: Repo }) {
   }
   const tracked = useIsTracked(ref)
 
+  const label = tracked ? 'Stop tracking' : 'Track'
+
   return (
-    <Button
-      size="small"
-      variant={tracked ? 'outlined' : 'contained'}
-      startIcon={tracked ? <Icon name="check" size={13} /> : undefined}
-      onClick={() => (tracked ? untrack(ref) : track(ref))}
-      aria-label={`${tracked ? 'Stop tracking' : 'Track'} ${repo.fullName}`}
-    >
-      {tracked ? 'Tracked' : 'Track'}
-    </Button>
+    /*
+     * Below `sm` the label is dropped and the button becomes a square icon
+     * target, which hands ~50px back to the title on a 390px screen — the width
+     * the title needs most. The icon carries the state on its own there, so it
+     * is rendered as a child rather than `startIcon`, whose margins would sit
+     * the glyph off-centre once the label is gone.
+     *
+     * `aria-label` already names the action for assistive technology at every
+     * width; the tooltip is what gives a sighted user the same, matching how
+     * `TrackedRepoCard` labels its icon-only controls.
+     */
+    <Tooltip title={label}>
+      <Button
+        size="small"
+        variant={tracked ? 'outlined' : 'contained'}
+        onClick={() => (tracked ? untrack(ref) : track(ref))}
+        aria-label={`${label} ${repo.fullName}`}
+        sx={{
+          flexShrink: 0,
+          minWidth: { xs: 44, sm: 'auto' },
+          px: { xs: 0, sm: 1.5 },
+          gap: { xs: 0, sm: 0.75 },
+          /*
+           * 13px is sized to sit beside the label; alone in a 44px square it
+           * reads as a speck, so the icon-only form gets the 18px of the design.
+           * Set in CSS rather than through `size`, which writes SVG width/height
+           * attributes and so cannot vary by breakpoint.
+           */
+          '& svg': { width: { xs: 18, sm: 13 }, height: { xs: 18, sm: 13 } },
+        }}
+      >
+        <Icon name={tracked ? 'check' : 'plus'} size={13} />
+        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+          {tracked ? 'Tracked' : 'Track'}
+        </Box>
+      </Button>
+    </Tooltip>
   )
 }
 
@@ -81,7 +112,10 @@ export function SearchResultList({ repos }: SearchResultListProps) {
   const reducedMotion = useReducedMotion()
 
   return (
-    <List aria-label="Search results" sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+    <List
+      aria-label="Search results"
+      sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}
+    >
       {repos.map((repo, index) => (
         <ListItem
           key={repo.id}
@@ -108,8 +142,9 @@ export function SearchResultList({ repos }: SearchResultListProps) {
                 target="_blank"
                 rel="noreferrer"
                 underline="hover"
+                sx={{ display: 'block', minWidth: 0 }}
               >
-                {repo.fullName}
+                <RepoName fullName={repo.fullName} />
               </Link>
             }
             secondary={

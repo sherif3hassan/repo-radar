@@ -66,6 +66,16 @@ const NO_UI_TO_PLOTS = {
 }
 
 /**
+ * `boundaries/dependencies` only governs workspace elements, so the `@mui/*`
+ * ban CLAUDE.md's matrix puts on `data-access` needs its own rule here — an
+ * external package import has no boundary element to check against.
+ */
+const NO_MUI = {
+  group: ['@mui/*', '@mui/*/*'],
+  message: 'data-access is I/O only. MUI belongs in ui, plots or apps/web.',
+}
+
+/**
  * Bans a feature importing its siblings by any spelling.
  *
  * A glob on `features/<other>` only matches the absolute form. The relative
@@ -99,6 +109,11 @@ export default [
       'boundaries/dependencies': ['error', { default: 'disallow', policies: POLICIES }],
       'no-restricted-imports': restrict(),
     },
+  },
+
+  {
+    files: ['packages/data-access/**/*.{ts,tsx}'],
+    rules: { 'no-restricted-imports': restrict(NO_MUI) },
   },
 
   {

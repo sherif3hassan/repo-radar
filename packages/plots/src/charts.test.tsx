@@ -104,7 +104,9 @@ describe('MagnitudeBarChart', () => {
   })
 
   it('reserves height for the repositories still resolving, so later rows do not shift the page', () => {
-    const { container } = renderChart(<MagnitudeBarChart data={[]} minRows={3} skipAnimation />)
+    const { container } = renderChart(
+      <MagnitudeBarChart data={[]} minRows={3} skipAnimation />,
+    )
 
     expect(getComputedStyle(container.firstChild as HTMLElement).minHeight).toBe('174px')
   })

@@ -53,8 +53,15 @@ export function ShareBar({
         : head
 
     return {
+      /**
+       * The overflow row is hard-coded to the label `'Other'`, so a genuine
+       * category also named "Other" would collide with it. Suffixing that one
+       * row keeps the key unique without making the other keys positional,
+       * which would defeat reconciliation when the ranking changes.
+       */
       segments: rows.map((row, index) => ({
         ...row,
+        key: index < maxSlots ? row.label : `${row.label}-overflow`,
         color: index < maxSlots ? (colors[index] ?? chart.disabled) : chart.disabled,
       })),
       total: rows.reduce((sum, row) => sum + row.value, 0),
@@ -86,7 +93,7 @@ export function ShareBar({
         </thead>
         <tbody>
           {segments.map((segment) => (
-            <tr key={segment.label}>
+            <tr key={segment.key}>
               <th scope="row">{segment.label}</th>
               <td>{segment.value}</td>
               <td>{share(segment.value)}%</td>
@@ -107,7 +114,7 @@ export function ShareBar({
       >
         {segments.map((segment) => (
           <Tooltip
-            key={segment.label}
+            key={segment.key}
             title={`${segment.label} — ${segment.value} (${share(segment.value)}%)`}
           >
             <Box sx={{ flexGrow: segment.value, bgcolor: segment.color, minWidth: 3 }} />
@@ -121,7 +128,7 @@ export function ShareBar({
       >
         {segments.map((segment) => (
           <Box
-            key={segment.label}
+            key={segment.key}
             sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}
           >
             <Box

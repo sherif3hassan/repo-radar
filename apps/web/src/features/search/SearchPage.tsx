@@ -65,8 +65,34 @@ export function SearchPage() {
               ),
               endAdornment: input ? (
                 <InputAdornment position="end">
-                  <IconButton aria-label="Clear search" size="small" onClick={clear}>
-                    <Icon name="close" size={13} />
+                  {/*
+                   * The global `MuiIconButton` override gives every icon button a
+                   * border and a 44px touch target, which is right for a standalone
+                   * control but wrong inside a field that already has a border: it
+                   * reads as a box inside a box and all but fills the 48px height.
+                   * Sized down to 36px here — still clear of WCAG 2.5.8's 24px
+                   * minimum — with the border dropped and the hover moved onto a
+                   * background, matching how the nav pill reacts.
+                   */}
+                  <IconButton
+                    aria-label="Clear search"
+                    onClick={clear}
+                    sx={{
+                      border: 0,
+                      width: 36,
+                      height: 36,
+                      minWidth: 36,
+                      minHeight: 36,
+                      borderRadius: 1.5,
+                      color: 'text.secondary',
+                      '&:hover': {
+                        border: 0,
+                        bgcolor: 'action.hover',
+                        color: 'text.primary',
+                      },
+                    }}
+                  >
+                    <Icon name="close" size={16} />
                   </IconButton>
                 </InputAdornment>
               ) : null,
@@ -74,7 +100,9 @@ export function SearchPage() {
             formHelperText: { sx: { textAlign: 'center' } },
           }}
           sx={(t) => {
-            const border = t.vars ? t.vars.palette.control.border : t.palette.control.border
+            const border = t.vars
+              ? t.vars.palette.control.border
+              : t.palette.control.border
             return {
               '& .MuiOutlinedInput-root': {
                 height: 48,

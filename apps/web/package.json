@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "typecheck": "tsc",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

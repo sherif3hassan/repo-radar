@@ -239,7 +239,9 @@ describe('TrackedPage', () => {
 
     expect(store.getState().tracked.ids).toEqual(['vuejs/core'])
     await waitFor(() =>
-      expect(screen.queryByRole('article', { name: 'facebook/react' })).not.toBeInTheDocument(),
+      expect(
+        screen.queryByRole('article', { name: 'facebook/react' }),
+      ).not.toBeInTheDocument(),
     )
   })
 })

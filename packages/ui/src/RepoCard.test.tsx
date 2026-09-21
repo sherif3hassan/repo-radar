@@ -67,9 +67,9 @@ describe('RepoCard', () => {
       }
     })
 
-    expect(rules.some((rule) => /animation:\s*animation-\w+ 240ms ease-out both/.test(rule))).toBe(
-      true,
-    )
+    expect(
+      rules.some((rule) => /animation:\s*animation-\w+ 240ms ease-out both/.test(rule)),
+    ).toBe(true)
   })
 
   it('links the name to the repository when a URL is given', () => {

@@ -19,7 +19,7 @@ architecture's enforcement. Revisit when typescript-eslint supports 7.1.
 
 ```bash
 pnpm dev          # turbo run dev
-pnpm build        # turbo run build  (only apps/web builds)
+pnpm build        # turbo run build  (builds apps/web and apps/storybook)
 pnpm typecheck    # tsc -b across the graph
 pnpm lint         # eslint, including boundary rules
 pnpm test         # vitest
@@ -108,7 +108,7 @@ maps `RepoStats` to props.
 - Colours, spacing and typography come from the theme, never hard-coded. The
   chart palette reads the same tokens.
 
-**Charts** (see PLAN.md §15)
+**Charts**
 
 - Never a dual-axis chart. Two measures of different magnitude means two charts.
 - Single series means no legend; the title names the measure.

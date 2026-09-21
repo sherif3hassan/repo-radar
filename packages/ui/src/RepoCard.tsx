@@ -14,6 +14,7 @@ import type { ReactNode } from 'react'
 import { clampLines } from './clamp'
 import { ErrorState } from './ErrorState'
 import { freshness } from './freshness'
+import { RepoName } from './RepoName'
 import { StatChip } from './StatChip'
 
 const settle = keyframes`
@@ -93,7 +94,14 @@ export function RepoCard({
           />
 
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 600 }}>
+            {/* `RepoName` splits `owner/name` so a long one cannot run under
+             * the action button — see its own note for why both parts stay
+             * inside the heading. */}
+            <Typography
+              variant="subtitle1"
+              component="h2"
+              sx={{ fontWeight: 600, minWidth: 0 }}
+            >
               {htmlUrl ? (
                 <Link
                   href={htmlUrl}
@@ -101,11 +109,12 @@ export function RepoCard({
                   rel="noreferrer"
                   underline="hover"
                   color="inherit"
+                  sx={{ display: 'block', minWidth: 0 }}
                 >
-                  {fullName}
+                  <RepoName fullName={fullName} />
                 </Link>
               ) : (
-                fullName
+                <RepoName fullName={fullName} />
               )}
             </Typography>
 
@@ -179,7 +188,10 @@ export function RepoCard({
                     bgcolor: `${fresh.tone}.main`,
                   }}
                 />
-                <Typography variant="body2" sx={{ fontSize: 13, color: 'text.secondary' }}>
+                <Typography
+                  variant="body2"
+                  sx={{ fontSize: 13, color: 'text.secondary' }}
+                >
                   {stats ? (formatRelativeDate(stats.lastCommitAt) ?? 'Unknown') : '—'}
                 </Typography>
                 <Box component="span" sx={visuallyHidden}>

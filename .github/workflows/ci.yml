@@ -9,6 +9,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# The job only checks out the repo and runs checks, so it needs nothing more
+# than read access.
+permissions:
+  contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -29,3 +34,5 @@ jobs:
       # One command: turbo runs lint, typecheck, test and build across the
       # workspace with its own caching and dependency ordering.
       - run: pnpm turbo run lint typecheck test build
+
+      - run: pnpm format:check

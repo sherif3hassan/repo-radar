@@ -137,7 +137,13 @@ export function App() {
             gap: { xs: 1, md: 3 },
             flexWrap: 'wrap',
             px: { xs: 2, md: 3 },
+            /*
+             * Below `md` the navigation wraps onto its own row. Without a matching
+             * `pb` that row sits flush against the AppBar's bottom border, so the
+             * nav pill and the divider touch.
+             */
             pt: { xs: 1, md: 0 },
+            pb: { xs: 1, md: 0 },
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, flexShrink: 0 }}>
@@ -172,12 +178,17 @@ export function App() {
             </Typography>
           </Box>
 
+          {/*
+           * No negative margin here: `width: 100%` already fills the row, so
+           * `mx: -2` made the box 32px wider than the Toolbar and pushed the
+           * page into a horizontal scroll over empty space on mobile. The
+           * `px: 2` that paired with it only cancelled the offset back out, so
+           * both come off together and the pill lands in the same place.
+           */}
           <Box
             sx={{
               order: { xs: 3, md: 1 },
               width: { xs: '100%', md: 'auto' },
-              mx: { xs: -2, md: 0 },
-              px: { xs: 2, md: 0 },
             }}
           >
             <Navigation />

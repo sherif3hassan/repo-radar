@@ -106,6 +106,14 @@ describe('persistence', () => {
       JSON.stringify({ version: 1, trackedIds: 'react' }),
     ],
     ['a payload missing fields', JSON.stringify({ version: 1 })],
+    [
+      'a tracked id that is not an owner/name pair',
+      JSON.stringify({
+        version: 1,
+        trackedIds: ['foo/bar?per_page=100'],
+        token: null,
+      }),
+    ],
   ])('falls back to null for %s', (_label, stored) => {
     window.localStorage.setItem(KEY, stored)
 

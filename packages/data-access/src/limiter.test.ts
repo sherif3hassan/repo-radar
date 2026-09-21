@@ -135,4 +135,27 @@ describe('createLimiter', () => {
   it('rejects a max below 1', () => {
     expect(() => createLimiter(0)).toThrow(RangeError)
   })
+
+  /**
+   * A synchronous throw from `task()` used to escape before `.finally()`
+   * ever attached, leaking the slot `active` was given for it. After
+   * `max` such throws the limiter would deadlock permanently.
+   */
+  it('frees the slot when a task throws synchronously', async () => {
+    const limiter = createLimiter(6)
+
+    const failing = Array.from({ length: 6 }, () =>
+      limiter.run(() => {
+        throw new Error('sync')
+      }),
+    )
+    await Promise.allSettled(failing)
+
+    let ran = false
+    await limiter.run(async () => {
+      ran = true
+    })
+
+    expect(ran).toBe(true)
+  })
 })

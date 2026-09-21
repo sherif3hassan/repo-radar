@@ -117,7 +117,11 @@ export function CategoryBarChart({
         xAxis={[
           {
             tickMinStep: 1,
-            tickLabelStyle: { fill: chart.label, fontSize: 11, fontFamily: monoFontFamily },
+            tickLabelStyle: {
+              fill: chart.label,
+              fontSize: 11,
+              fontFamily: monoFontFamily,
+            },
           },
         ]}
         series={[
