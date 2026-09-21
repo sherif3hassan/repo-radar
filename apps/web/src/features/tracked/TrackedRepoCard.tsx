@@ -66,7 +66,9 @@ export function TrackedRepo({ repo, sx }: TrackedRepoProps) {
           aria-label={`Stop tracking ${fullName}`}
           onClick={() => untrack(repo)}
         >
-          <Icon name="close" />
+          {/* Filled, matching the tracked state of the Track toggle in search:
+           * the same concept should not carry two different icons. */}
+          <Icon name="bookmark" fill="currentColor" />
         </IconButton>
       </Tooltip>
     </>

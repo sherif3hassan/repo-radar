@@ -59,7 +59,7 @@ function TrackButton({ repo }: { repo: Repo }) {
           '& svg': { width: { xs: 18, sm: 13 }, height: { xs: 18, sm: 13 } },
         }}
       >
-        <Icon name={tracked ? 'check' : 'plus'} size={13} />
+        <Icon name="bookmark" size={13} fill={tracked ? 'currentColor' : 'none'} />
         <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
           {tracked ? 'Tracked' : 'Track'}
         </Box>

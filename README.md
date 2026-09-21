@@ -194,6 +194,10 @@ The tests worth reading:
   isolation, and that a hinted `StatChip`/`StatTile` is keyboard-focusable.
   `--passWithNoTests` is gone from every package: an emptied test file now
   fails the build instead of passing silently.
+- **`types` is covered on its own** — `parseFullName` round-trips through
+  `toFullName` and rejects malformed input, and `parseWith` truncates a long
+  list of schema issues rather than dumping them into an error state. It owns
+  every schema in the app, so it is the wrong package to reach only indirectly.
 - **Tracking from search, and persistence end to end** (`store.test.ts`,
   `SearchPage.test.tsx`) — clicking Track updates the button, the store and
   localStorage; a fresh `makeStore()` reads back exactly what a previous

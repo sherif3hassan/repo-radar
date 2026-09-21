@@ -14,12 +14,14 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "check:overflow": "node scripts/check-overflow.mjs"
   },
   "devDependencies": {
     "@repo-radar/config": "workspace:*",
     "eslint": "^10.10.0",
     "prettier": "^3.9.8",
+    "puppeteer-core": "^23.11.1",
     "turbo": "^2.10.13",
     "typescript": "^6.0.3"
   }
