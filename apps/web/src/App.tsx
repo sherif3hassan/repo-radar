@@ -93,6 +93,25 @@ export function App() {
     <Box
       sx={(t) => ({
         minHeight: '100dvh',
+        /*
+         * A backstop, not a fix. Every known cause of sideways scrolling is
+         * fixed at its source — grid tracks use `minmax(0, …)`, long
+         * `owner/name` truncates, rows that can grow with the text-size
+         * preference wrap. This catches whatever gets added next.
+         *
+         * `clip` rather than `hidden`: `hidden` makes this a scroll container,
+         * which silently breaks `position: sticky` on any descendant. Nothing
+         * here is meant to scroll sideways — the charts carry their own data
+         * tables — so clipping costs nothing and keeps the guarantee.
+         *
+         * `position: relative` is what makes that clip reach absolutely
+         * positioned descendants. Without it they resolve against the initial
+         * containing block and are measured against the document, so they
+         * scroll the page while ignoring this rule entirely — which is exactly
+         * how the charts' visually hidden data tables got past it.
+         */
+        position: 'relative',
+        overflowX: 'clip',
         bgcolor: 'background.default',
         backgroundImage: `radial-gradient(1100px 480px at 50% -10%, ${
           t.vars ? t.vars.palette.decor.glow : t.palette.decor.glow

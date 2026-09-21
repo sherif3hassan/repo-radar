@@ -19,7 +19,18 @@ export function renderWithProviders(
   ui: ReactElement,
   { route = '/', store = makeStore(), ...options }: RenderWithProvidersOptions = {},
 ): RenderResult & { store: AppStore; user: ReturnType<typeof userEvent.setup> } {
-  const user = userEvent.setup()
+  /**
+   * `delay: null` removes user-event's wait between keystrokes. The default
+   * awaits a macrotask per character, and with a React re-render and MUI's
+   * dialog transitions behind each one, typing a token took ~1.9s of the 5s
+   * timeout on this machine alone — enough that a slower CI runner tipped it
+   * over. A timed-out `user.type` is worse than a slow one: its promise keeps
+   * running and types the rest of the string into whatever the next test
+   * renders, so one timeout fails two tests.
+   *
+   * Nothing here tests typing cadence, so the delay only bought flakiness.
+   */
+  const user = userEvent.setup({ delay: null })
 
   const result = render(ui, {
     wrapper: ({ children }) => (

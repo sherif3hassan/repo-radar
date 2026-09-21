@@ -79,7 +79,11 @@ export function TrackedPage() {
           </Typography>
         </Stack>
 
-        <Stack direction="row" spacing={1}>
+        {/*
+         * Wraps because the labels grow: the text-size preference scales this
+         * row, and at "Larger" the two buttons together exceed a 390px screen.
+         */}
+        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
           <Button
             variant="outlined"
             startIcon={<Icon name="refresh" />}

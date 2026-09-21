@@ -20,7 +20,7 @@ pnpm dev          # http://localhost:5173
 ```bash
 pnpm lint         # eslint, including the architectural boundary rules
 pnpm typecheck    # tsc across every package
-pnpm test         # vitest — 267 tests
+pnpm test         # vitest — 277 tests
 pnpm build        # production build into apps/web/dist
 ```
 
@@ -51,7 +51,7 @@ configure and no token in the bundle.
 | -------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | Debounced repository search            | `features/search/useDebouncedValue.ts` — 400 ms trailing edge, minimum two characters, `?q=` kept in sync |
 | Track / untrack                        | From search results and from each tracked row                                                             |
-| Tracked repos view                     | `/tracked` — a table above `md`, stacked cards below                                                      |
+| Tracked repos view                     | `/tracked` — summary tiles, two charts, then a card grid (1 / 2 / 3 columns)                              |
 | Stars, open issues, last commit date   | The commit date comes from the commits endpoint, not `pushed_at`; open issues excludes pull requests      |
 | Refresh one / refresh all              | Per-row refresh, plus a concurrency-limited refresh-all                                                   |
 | Independent loading and error per repo | One RTK Query cache entry per repository                                                                  |
@@ -164,7 +164,7 @@ the real weight.
 
 ## Testing
 
-267 tests with Vitest, Testing Library and MSW. Mocking at the network layer
+277 tests with Vitest, Testing Library and MSW. Mocking at the network layer
 means the real store, the real RTK Query cache and the real zod schemas all run.
 
 The tests worth reading:
@@ -209,9 +209,10 @@ Vercel, configured in `vercel.json`: `pnpm turbo run build --filter=@repo-radar/
 output `apps/web/dist`, with an SPA rewrite so client routes deep-link.
 
 The tracked route is lazy-loaded, keeping the charting library off the landing
-bundle — 240 kB gzipped initial, with a 93 kB chart chunk fetched on demand.
+bundle — 235 kB gzipped initial, with a 95 kB chart chunk fetched on demand.
 
-CI runs lint, typecheck, test and build on every push and pull request.
+CI runs lint, typecheck, test, build and a formatting check on every push and
+pull request, with `GITHUB_TOKEN` pinned to `contents: read`.
 
 ---
 

@@ -20,6 +20,7 @@ flowchart TD
     web --> ui
     web --> plots
     web --> types
+    web --> util
 
     da --> types
     da --> util
@@ -82,7 +83,9 @@ Two further layers cover what dependency lists cannot express:
    can express: feature isolation inside `apps/web` (including the
    `../settings/x` spelling an IDE autocompletes), `import-x/no-cycle`,
    `import-x/no-relative-packages` so a relative path cannot tunnel into a
-   sibling package, and the redux ban on presentational packages.
+   sibling package, the redux ban on presentational packages, and the `@mui/*`
+   ban on `data-access` — `boundaries/dependencies` governs workspace elements
+   only, so a ban on an external package needs its own rule.
 
 The lint matrix is deliberately secondary — documentation with teeth, and
 `default: 'disallow'` so a package added later is denied until someone writes a

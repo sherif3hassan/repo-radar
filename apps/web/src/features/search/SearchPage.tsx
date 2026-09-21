@@ -67,29 +67,39 @@ export function SearchPage() {
                 <InputAdornment position="end">
                   {/*
                    * The global `MuiIconButton` override gives every icon button a
-                   * border and a 44px touch target, which is right for a standalone
-                   * control but wrong inside a field that already has a border: it
-                   * reads as a box inside a box and all but fills the 48px height.
-                   * Sized down to 36px here — still clear of WCAG 2.5.8's 24px
-                   * minimum — with the border dropped and the hover moved onto a
-                   * background, matching how the nav pill reacts.
+                   * border, which is right for a standalone control but reads as a
+                   * box inside a box within a field that already has one. The
+                   * border goes; the 44px target stays, because the README claims
+                   * AAA for target size (WCAG 2.5.5) and this control is on the
+                   * landing route.
+                   *
+                   * The hover fill is drawn by `::before` inset 4px, so the target
+                   * measures 44px while the visible affordance stays 36px and does
+                   * not crowd the 48px field. 2.5.5 measures the target, not the
+                   * paint.
                    */}
                   <IconButton
                     aria-label="Clear search"
                     onClick={clear}
                     sx={{
                       border: 0,
-                      width: 36,
-                      height: 36,
-                      minWidth: 36,
-                      minHeight: 36,
+                      width: 44,
+                      height: 44,
+                      minWidth: 44,
+                      minHeight: 44,
                       borderRadius: 1.5,
                       color: 'text.secondary',
-                      '&:hover': {
-                        border: 0,
-                        bgcolor: 'action.hover',
-                        color: 'text.primary',
+                      position: 'relative',
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        inset: 4,
+                        borderRadius: 'inherit',
+                        transition: (t) =>
+                          t.transitions.create('background-color', { duration: 150 }),
                       },
+                      '&:hover': { border: 0, color: 'text.primary' },
+                      '&:hover::before': { bgcolor: 'action.hover' },
                     }}
                   >
                     <Icon name="close" size={16} />

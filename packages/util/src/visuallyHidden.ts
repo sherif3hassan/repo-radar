@@ -12,6 +12,15 @@
  * page-sized, page-positioned box — clipped from view, but still counted
  * in the document's scrollable area, which is what caused every page to
  * scroll horizontally past the viewport. Units make the values literal.
+ *
+ * `tableLayout` is here for the same reason, one layer down. The charts hide
+ * their data tables with this, and on a `display: table` box `width` is only a
+ * *minimum* — the table still sizes to its content, which `whiteSpace: nowrap`
+ * then makes as wide as its longest row. Those tables laid out at 400-600px,
+ * and being absolutely positioned with no positioned ancestor they were
+ * measured against the document, so `/tracked` scrolled sideways into blank
+ * space. `table-layout: fixed` makes the declared width authoritative; it is
+ * inert on every non-table element, and changes nothing a screen reader reads.
  */
 export const visuallyHidden = {
   position: 'absolute',
@@ -23,4 +32,5 @@ export const visuallyHidden = {
   clip: 'rect(0 0 0 0)',
   whiteSpace: 'nowrap',
   border: 0,
+  tableLayout: 'fixed',
 } as const
